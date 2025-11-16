@@ -102,10 +102,18 @@ export const PostImageCarousel = React.memo<PostImageCarouselProps>(
     // This prevents multiple ExoPlayer instances from being created simultaneously
     const shouldRenderVideo = (index: number) => {
       // Only render video if:
-      // 1. Post is visible
-      // 2. This is the current index
+      // 1. Post is visible (isVisible = true)
+      // 2. This is the current index in the carousel
       // 3. It's actually a video
       return isVisible && index === currentIndex;
+    };
+
+    // Determine if video should be paused
+    // Video should be paused if:
+    // 1. Post is not visible, OR
+    // 2. This is not the current index in the carousel
+    const shouldPauseVideo = (index: number) => {
+      return !isVisible || index !== currentIndex;
     };
 
     return (
@@ -145,11 +153,11 @@ export const PostImageCarousel = React.memo<PostImageCarouselProps>(
                     }}
                     source={getVideoSource(item.uri)}
                     style={styles.image}
-                    paused={!isVisible || index !== currentIndex}
+                    paused={shouldPauseVideo(index)}
                     duration={item.duration}
-                    showTimer={true}
+                    showTimer={isVisible && index === currentIndex && !shouldPauseVideo(index)}
                     enableTapToPlay={isVisible && index === currentIndex}
-                    showPlayButton={isVisible && index === currentIndex}
+                    showPlayButton={shouldPauseVideo(index) || (isVisible && index === currentIndex)}
                   />
                 ) : (
                   // CRITICAL: Render placeholder View instead of Video when not visible

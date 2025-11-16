@@ -15,7 +15,9 @@ interface UseMediaPlayerVisibilityReturn {
 export const useMediaPlayerVisibility = (
   _itemVisiblePercentThreshold: number = 50,
 ): UseMediaPlayerVisibilityReturn => {
-  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set());
+  // Initialize with first few items visible to prevent black screen on mount
+  // This ensures videos autoplay immediately when feed loads
+  const [visibleItems, setVisibleItems] = useState<Set<number>>(new Set([0, 1]));
 
   const onViewableItemsChanged = useCallback(
     ({viewableItems}: {viewableItems: ViewToken[]}) => {

@@ -1,5 +1,6 @@
 import {EXTERNAL_IMAGE_URLS} from '@constants/api.constants';
 import type {MediaItem} from '../types/post.types';
+import { postService } from './postService';
 
 /**
  * Video duration mapping (in seconds)
@@ -24,18 +25,8 @@ const getVideoDurationByIndex = (index: number): number | undefined => {
 class MediaService {
   private generateMockMedia(): MediaItem[] {
     const media: MediaItem[] = [];
-    const imageUris = [
-      require('../assets/images/image-1.jpg'),
-      require('../assets/images/image-2.jpg'),
-      require('../assets/images/image-3.jpg'),
-      require('../assets/images/image-4.jpg'),
-    ];
-    const videoUris = [
-      require('../assets/videos/video-1.mp4'),
-      require('../assets/videos/video-2.mp4'),
-      require('../assets/videos/video-3.mp4'),
-      require('../assets/videos/video-4.mp4'),
-    ];
+    const imageUris = postService.getAllImageAssets();
+    const videoUris = postService.getAllVideoAssets();
 
     // Add images (mix of local and external)
     for (let i = 0; i < 20; i++) {

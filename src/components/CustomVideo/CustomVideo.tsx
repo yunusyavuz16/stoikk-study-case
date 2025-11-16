@@ -1,9 +1,16 @@
-import React, {useRef, useState, forwardRef, useImperativeHandle, useEffect, useCallback} from 'react';
-import {View, StyleSheet, Text, Pressable} from 'react-native';
-import Video, {type VideoRef, type OnLoadData, type OnProgressData} from 'react-native-video';
-import {Icon} from '@components/Icon/Icon';
-import {ICONS} from '@constants/icons.constants';
-import type {CustomVideoProps} from './CustomVideoProps';
+import React, {
+  useRef,
+  useState,
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+  useCallback,
+} from 'react';
+import { View, StyleSheet, Text, Pressable } from 'react-native';
+import Video, { type VideoRef, type OnLoadData, type OnProgressData } from 'react-native-video';
+import { Icon } from '@components/Icon/Icon';
+import { ICONS } from '@constants/icons.constants';
+import type { CustomVideoProps } from './CustomVideoProps';
 import { styles } from './CustomVideo.styles';
 
 /**
@@ -39,45 +46,85 @@ export const CustomVideo = React.memo(
       const previousPausedForTimerRef = useRef<boolean>(paused);
 
       // Internal play/pause state when tap-to-play is enabled
-      const [internalPaused, setInternalPaused] = useState(paused);
+      // This allows user to manually pause/play while respecting visibility-based autoplay
+      // Initialize based on paused prop - if paused=false, video should autoplay
+      const [internalPaused, setInternalPaused] = useState(() => {
+        // On initial mount, if enableTapToPlay is true and paused is false, start playing
+        // Otherwise, respect the paused prop
+        return paused;
+      });
       const previousPausedPropRef = useRef<boolean>(paused);
+      const userPausedRef = useRef<boolean>(false); // Track if user manually paused
+
+      // Reset error state when video becomes visible and should play
+      // This allows video to retry loading when it becomes visible
+      useEffect(() => {
+        if (!paused && hasError) {
+          // Video should play but has error - reset error to allow retry
+          // The video component will try to load again when key changes
+          setHasError(false);
+        }
+      }, [paused, hasError]);
 
       // Sync internal state with external paused prop
       // When tap-to-play is disabled, always sync with external prop
-      // When tap-to-play is enabled, auto-play when video becomes visible (paused changes from true to false)
+      // When tap-to-play is enabled, auto-play when video becomes visible (unless user manually paused)
       useEffect(() => {
         if (!enableTapToPlay) {
           // When tap-to-play is disabled, always sync with external prop
           setInternalPaused(paused);
+          userPausedRef.current = false;
         } else {
           // When tap-to-play is enabled:
-          // - If video becomes visible (paused: true -> false), auto-play
-          // - If video becomes hidden (paused: false -> true), pause
-          // - On initial mount with paused=false, start playing
+          // - If paused prop is false (video should play), autoplay unless user manually paused
+          // - If paused prop is true (video should pause), pause immediately
           const wasPaused = previousPausedPropRef.current;
-          if (wasPaused && !paused) {
-            // Video just became visible - auto-play
-            setInternalPaused(false);
-          } else if (!wasPaused && paused) {
-            // Video just became hidden - pause
+
+          if (paused) {
+            // Video should be paused - pause immediately
             setInternalPaused(true);
-          } else if (wasPaused === paused) {
-            // Initial mount or prop hasn't changed - sync with prop (auto-play if paused=false)
-            setInternalPaused(paused);
+            // Reset user pause flag when video becomes hidden (paused prop becomes true)
+            if (!wasPaused) {
+              userPausedRef.current = false;
+            }
+          } else {
+            // Video should play (paused prop is false) - autoplay unless user manually paused
+            if (!userPausedRef.current) {
+              setInternalPaused(false);
+              // Reset error when video should play - allows retry
+              if (hasError) {
+                setHasError(false);
+              }
+            }
           }
         }
         previousPausedPropRef.current = paused;
-      }, [paused, enableTapToPlay]);
+      }, [paused, enableTapToPlay, hasError]);
 
       // Determine the actual paused state
       const actualPaused = enableTapToPlay ? internalPaused : paused;
 
       // Handle tap to toggle play/pause
       const handleTap = useCallback(() => {
-        if (enableTapToPlay) {
-          setInternalPaused(prev => !prev);
+        // If there's an error, reset it to allow retry
+        if (hasError) {
+          setHasError(false);
+          // Try to play if video should be playing
+          if (!paused) {
+            setInternalPaused(false);
+          }
+          return;
         }
-      }, [enableTapToPlay]);
+
+        if (enableTapToPlay) {
+          setInternalPaused(prev => {
+            const newPaused = !prev;
+            // Track if user manually paused (true) or manually played (false)
+            userPausedRef.current = newPaused;
+            return newPaused;
+          });
+        }
+      }, [enableTapToPlay, hasError, paused]);
 
       // Expose video ref to parent components
       useImperativeHandle(ref, () => videoRef.current as VideoRef, []);
@@ -107,6 +154,7 @@ export const CustomVideo = React.memo(
 
       /**
        * Handle timer countdown
+       * Timer only runs when video is visible and playing
        */
       useEffect(() => {
         // Clear existing interval
@@ -118,9 +166,19 @@ export const CustomVideo = React.memo(
         // Only run timer if:
         // 1. Timer is enabled
         // 2. Duration is provided
-        // 3. Video is not paused
+        // 3. Video is not paused (playing)
         // 4. There's remaining time
-        if (showTimer && duration && duration > 0 && !actualPaused && remainingTime !== null && remainingTime > 0) {
+        // 5. Video is visible (showTimer is true, which means isVisible && !paused)
+        // 6. No error occurred
+        if (
+          showTimer &&
+          duration &&
+          duration > 0 &&
+          !actualPaused &&
+          remainingTime !== null &&
+          remainingTime > 0 &&
+          !hasError
+        ) {
           intervalRef.current = setInterval(() => {
             setRemainingTime(prev => {
               if (prev === null || prev <= 0) {
@@ -129,6 +187,10 @@ export const CustomVideo = React.memo(
               return prev - 1;
             });
           }, 1000);
+        } else if ((actualPaused || hasError) && intervalRef.current) {
+          // Stop timer immediately when video is paused or has error
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
         }
 
         // Cleanup on unmount or when conditions change
@@ -138,7 +200,7 @@ export const CustomVideo = React.memo(
             intervalRef.current = null;
           }
         };
-      }, [showTimer, duration, actualPaused, remainingTime]);
+      }, [showTimer, duration, actualPaused, remainingTime, hasError]);
 
       /**
        * Reset timer when video ends (resets for repeat or when video loops)
@@ -153,11 +215,12 @@ export const CustomVideo = React.memo(
 
       /**
        * Reset timer when video starts playing (if it was paused)
+       * This ensures timer resets when video becomes visible and auto-plays
        */
       useEffect(() => {
         // If video was paused and now is playing, reset timer
         if (previousPausedForTimerRef.current && !actualPaused && duration && duration > 0) {
-          setRemainingTime(duration);
+          setRemainingTime(Math.floor(duration));
         }
         previousPausedForTimerRef.current = actualPaused;
       }, [actualPaused, duration]);
@@ -187,12 +250,27 @@ export const CustomVideo = React.memo(
         : undefined;
 
       const handleLoad = (data: OnLoadData) => {
+        // Clear error when video loads successfully
         setHasError(false);
+        // When video loads, if it should be playing (enableTapToPlay and not paused),
+        // ensure it starts playing. This handles cases where video loads but paused state hasn't synced yet.
+        if (enableTapToPlay && !paused && !userPausedRef.current) {
+          setInternalPaused(false);
+        } else if (!enableTapToPlay && !paused) {
+          // When tap-to-play is disabled, sync with paused prop
+          setInternalPaused(false);
+        }
         onLoad?.(data);
       };
 
-      const handleError = () => {
+      const handleError = (error: any) => {
+        console.warn('Video load error:', error);
         setHasError(true);
+        // Reset timer when error occurs
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+          intervalRef.current = null;
+        }
       };
 
       const handleProgress = (data: OnProgressData) => {
@@ -202,18 +280,49 @@ export const CustomVideo = React.memo(
       // Validate source
       const isValidSource =
         source &&
-        (typeof source === 'number' || (typeof source === 'object' && 'uri' in source && source.uri));
+        (typeof source === 'number' ||
+          (typeof source === 'object' && 'uri' in source && source.uri));
 
-      // Return fallback black View if source is invalid or load fails
-      if (!isValidSource || hasError) {
+      // If source is invalid, return fallback
+      if (!isValidSource) {
         return <View style={[styles.fallback, style]} />;
       }
 
-      const shouldShowTimer = showTimer && duration && duration > 0 && remainingTime !== null && remainingTime >= 0;
-      const shouldShowPlayButton = enableTapToPlay && showPlayButton && actualPaused;
+      // If there's an error, still render the video component but show play button
+      // This allows the video to retry when user taps play or when it becomes visible
+      // The video component will handle the error and we can retry by resetting hasError
+
+      const shouldShowTimer =
+        showTimer &&
+        duration &&
+        duration > 0 &&
+        remainingTime !== null &&
+        remainingTime >= 0 &&
+        !hasError; // Don't show timer when there's an error
+      // Show play button when:
+      // 1. Video is actually paused (either manually or automatically), OR
+      // 2. There's an error (so user can retry)
+      // When enableTapToPlay is true, always show play button when paused (for manual pause support)
+      // When enableTapToPlay is false, respect the showPlayButton prop
+      const shouldShowPlayButton =
+        hasError ||
+        (enableTapToPlay && actualPaused) ||
+        (!enableTapToPlay && showPlayButton && actualPaused);
+
+      // Use a retry counter to force remount when retrying after error
+      const retryKeyRef = useRef(0);
+      const previousHasErrorRef = useRef(hasError);
+      useEffect(() => {
+        // Increment retry key when error is cleared (allows retry)
+        if (previousHasErrorRef.current && !hasError) {
+          retryKeyRef.current += 1;
+        }
+        previousHasErrorRef.current = hasError;
+      }, [hasError]);
 
       const videoElement = (
         <Video
+          key={`video-${retryKeyRef.current}`} // Force remount on retry
           ref={videoRef}
           source={source as any}
           paused={actualPaused}
@@ -266,22 +375,15 @@ export const CustomVideo = React.memo(
             </View>
           )}
           {enableTapToPlay ? (
-            <Pressable
-              style={StyleSheet.absoluteFill}
-              onPress={handleTap}>
+            <Pressable style={StyleSheet.absoluteFill} onPress={handleTap}>
               {shouldShowPlayButton && (
                 <View style={styles.playButtonContainer} pointerEvents="box-none">
                   <Pressable
                     onPress={handleTap}
-                    hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                    hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                     <View style={styles.playButton}>
                       <View style={styles.playIconContainer}>
-                        <Icon
-                          name={ICONS.PLAY}
-                          size={48}
-                          color="#FFFFFF"
-                          family="Ionicons"
-                        />
+                        <Icon name={ICONS.PLAY} size={48} color="#FFFFFF" family="Ionicons" />
                       </View>
                     </View>
                   </Pressable>
@@ -293,15 +395,10 @@ export const CustomVideo = React.memo(
               <Pressable
                 style={styles.playButtonContainer}
                 onPress={handleTap}
-                hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}>
                 <View style={styles.playButton}>
                   <View style={styles.playIconContainer}>
-                    <Icon
-                      name={ICONS.PLAY}
-                      size={48}
-                      color="#FFFFFF"
-                      family="Ionicons"
-                    />
+                    <Icon name={ICONS.PLAY} size={48} color="#FFFFFF" family="Ionicons" />
                   </View>
                 </View>
               </Pressable>
@@ -314,6 +411,3 @@ export const CustomVideo = React.memo(
 );
 
 CustomVideo.displayName = 'CustomVideo';
-
-
-

@@ -29,7 +29,7 @@ export const createStyles = (theme: Theme) =>
     },
     mediaContainer: {
       width: '100%',
-      aspectRatio: 1,
+      aspectRatio: 4 / 5, // 4:5 ratio for all media
       backgroundColor: theme.colors.surface,
       overflow: 'hidden',
     },

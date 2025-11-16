@@ -44,7 +44,7 @@ export const Post = React.memo<PostProps>(({post, onLike, isVisible = true}) => 
         {hasMultipleMedia || (post.type === 'images' && post.media.length > 0) ? (
           <PostImageCarousel media={post.media} isVisible={isVisible} />
         ) : isVideoOnly ? (
-          <PostVideo video={post.media[0]} paused={shouldPauseVideo} />
+          <PostVideo video={post.media[0]} paused={shouldPauseVideo} isVisible={isVisible} />
         ) : null}
       </ThemedView>
 

@@ -22,18 +22,18 @@ const VIDEO_DURATIONS: number[] = [12, 8.5, 14, 13.3, 7.9, 8.4, 5.8, 10.3, 7.5, 
  * Generates diverse mock posts with various media combinations
  */
 class PostService {
-  private getAllImageAssets() {
+  public getAllImageAssets() {
     return [
-      require('../assets/images/image-1.jpg'),
-      require('../assets/images/image-2.jpg'),
-      require('../assets/images/image-3.jpg'),
-      require('../assets/images/image-4.jpg'),
-      require('../assets/images/image-5.jpg'),
-      require('../assets/images/image-6.jpg'),
-      require('../assets/images/image-7.jpg'),
-      require('../assets/images/image-8.jpg'),
-      require('../assets/images/image-9.jpg'),
-      require('../assets/images/image-10.jpg'),
+      require('../assets/images/image-1.png'),
+      require('../assets/images/image-2.png'),
+      require('../assets/images/image-3.png'),
+      require('../assets/images/image-4.png'),
+      require('../assets/images/image-5.png'),
+      require('../assets/images/image-6.png'),
+      require('../assets/images/image-7.png'),
+      require('../assets/images/image-8.png'),
+      require('../assets/images/image-9.png'),
+      require('../assets/images/image-10.png'),
     ];
   }
 
@@ -41,7 +41,7 @@ class PostService {
    * Get all video assets with their durations
    * Returns an array of objects containing uri and duration
    */
-  private getAllVideoAssets(): VideoAsset[] {
+  public getAllVideoAssets(): VideoAsset[] {
     const videoUris = [
       require('../assets/videos/video-1.mp4'),
       require('../assets/videos/video-2.mp4'),

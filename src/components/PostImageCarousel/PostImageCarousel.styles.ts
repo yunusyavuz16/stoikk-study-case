@@ -6,7 +6,7 @@ const {width: SCREEN_WIDTH} = Dimensions.get('window');
 export const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: SCREEN_WIDTH, // Square aspect ratio
+    aspectRatio: 4 / 5, // 4:5 ratio for all media
     backgroundColor: theme.colors.black,
   },
   scrollView: {
@@ -17,11 +17,12 @@ export const styles = StyleSheet.create({
   },
   imageContainer: {
     width: SCREEN_WIDTH,
+    aspectRatio: 4 / 5, // 4:5 ratio for each media item
     overflow: 'hidden', // Hide any controls that might appear outside bounds
   },
   image: {
-    width: SCREEN_WIDTH,
-    height: SCREEN_WIDTH,
+    width: '100%',
+    height: '100%',
   },
   pagination: {
     position: 'absolute',
