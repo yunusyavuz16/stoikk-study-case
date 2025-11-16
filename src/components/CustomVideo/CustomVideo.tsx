@@ -4,7 +4,7 @@ import Video, {type VideoRef, type OnLoadData, type OnProgressData} from 'react-
 import {Icon} from '@components/Icon/Icon';
 import {ICONS} from '@constants/icons.constants';
 import type {CustomVideoProps} from './CustomVideoProps';
-import { theme } from '@/styles/theme';
+import { styles } from './CustomVideo.styles';
 
 /**
  * Reusable video component that wraps react-native-video
@@ -315,56 +315,5 @@ export const CustomVideo = React.memo(
 
 CustomVideo.displayName = 'CustomVideo';
 
-const styles = StyleSheet.create({
-  container: {
-    position: 'relative',
-  },
-  fallback: {
-    backgroundColor: '#000000',
-  },
-  timerContainer: {
-    position: 'absolute',
-    top: 12,
-    right: 12,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    zIndex: 10,
-  },
-  timerText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '600',
-    fontFamily: 'monospace',
-  },
-  playButtonContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 20,
-  },
-  playButton: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.8)',
-  },
-  playIconContainer: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: theme.spacing.xs, // Slight offset to visually center the play triangle
-  },
-  tapOverlay: {
-    zIndex: 15,
-  },
-});
+
 

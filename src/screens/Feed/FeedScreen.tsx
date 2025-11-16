@@ -1,21 +1,28 @@
-import React, {useCallback, useRef, useState, useEffect} from 'react';
-import {FlatList, View, ActivityIndicator, Text, RefreshControl, TouchableOpacity} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
-import {Post} from '@components/Post/Post';
-import {SearchBar} from '@components/SearchBar/SearchBar';
-import {Icon} from '@components/Icon/Icon';
-import {EmptyState} from '@components/EmptyState/EmptyState';
-import {ICONS} from '@constants/icons.constants';
-import {useFeedRTK} from '@hooks/useFeedRTK';
-import {useImagePrefetch} from '@hooks/useImagePrefetch';
-import {useMediaPlayerVisibility} from '@hooks/useMediaPlayerVisibility';
-import {PostSkeleton} from '@components/Skeleton/Skeleton';
-import {styles} from './FeedScreen.styles';
-import type {RootStackParamList} from '../../navigation/types';
-import {theme} from '@styles/theme';
-import type {Post as PostType} from '../../types/post.types';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import React, { useCallback, useRef, useState, useEffect } from 'react';
+import {
+  FlatList,
+  View,
+  ActivityIndicator,
+  Text,
+  RefreshControl,
+  TouchableOpacity,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import { Post } from '@components/Post/Post';
+import { SearchBar } from '@components/SearchBar/SearchBar';
+import { Icon } from '@components/Icon/Icon';
+import { EmptyState } from '@components/EmptyState/EmptyState';
+import { ICONS } from '@constants/icons.constants';
+import { useFeedRTK } from '@hooks/useFeedRTK';
+import { useImagePrefetch } from '@hooks/useImagePrefetch';
+import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
+import { PostSkeleton } from '@components/Skeleton/Skeleton';
+import { styles } from './FeedScreen.styles';
+import type { RootStackParamList } from '../../navigation/types';
+import { theme } from '@styles/theme';
+import type { Post as PostType } from '../../types/post.types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 /**
  * Feed screen displaying posts in a scrollable list with infinite scroll
@@ -23,9 +30,10 @@ import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
  */
 export const FeedScreen: React.FC = () => {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore, toggleLike} = useFeedRTK();
-  const {prefetchImages} = useImagePrefetch();
-  const {onViewableItemsChanged, isItemVisible} = useMediaPlayerVisibility(50);
+  const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore, toggleLike } =
+    useFeedRTK();
+  const { prefetchImages } = useImagePrefetch();
+  const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
   const [searchQuery, setSearchQuery] = useState('');
 
   const viewabilityConfigRef = useRef({
@@ -68,7 +76,7 @@ export const FeedScreen: React.FC = () => {
   }, [posts, prefetchImages]);
 
   const renderPost = useCallback(
-    ({item, index}: {item: PostType; index: number}) => {
+    ({ item, index }: { item: PostType; index: number }) => {
       // Pause videos for posts that are not visible (memory optimization)
       const isVisible = isItemVisible(index);
       return <Post post={item} onLike={handleLike} isVisible={isVisible} />;
@@ -76,18 +84,15 @@ export const FeedScreen: React.FC = () => {
     [handleLike, isItemVisible],
   );
 
-  const keyExtractor = useCallback(
-    (item: PostType, index: number) => {
-      // Use post ID as key - deduplication in useFeedRTK ensures uniqueness
-      // Fallback to index only if ID is missing (should never happen)
-      if (!item?.id) {
-        console.warn(`Post at index ${index} missing ID, using fallback key`);
-        return `post_fallback_${index}`;
-      }
-      return item.id;
-    },
-    [],
-  );
+  const keyExtractor = useCallback((item: PostType, index: number) => {
+    // Use post ID as key - deduplication in useFeedRTK ensures uniqueness
+    // Fallback to index only if ID is missing (should never happen)
+    if (!item?.id) {
+      console.warn(`Post at index ${index} missing ID, using fallback key`);
+      return `post_fallback_${index}`;
+    }
+    return item.id;
+  }, []);
 
   const renderFooter = useCallback(() => {
     if (!isLoadingMore) {
@@ -101,10 +106,11 @@ export const FeedScreen: React.FC = () => {
   }, [isLoadingMore]);
 
   const renderEmpty = useCallback(() => {
+    // Show loading skeleton during initial load
     if (isLoading) {
       return (
         <View style={styles.emptyContainer}>
-          {Array.from({length: 3}).map((_, i) => (
+          {Array.from({ length: 3 }).map((_, i) => (
             <PostSkeleton key={i} />
           ))}
         </View>
@@ -113,6 +119,7 @@ export const FeedScreen: React.FC = () => {
     if (error) {
       return <EmptyState type="network" message={error.message} onRetry={refresh} />;
     }
+    // Only show "no posts yet" when loading is complete and there are no posts
     return <EmptyState type="feed" />;
   }, [isLoading, error, refresh]);
 
@@ -150,12 +157,7 @@ export const FeedScreen: React.FC = () => {
           style={styles.profileButton}
           accessibilityLabel="Go to profile"
           accessibilityRole="button">
-          <Icon
-            name={ICONS.PROFILE}
-            size={24}
-            color={theme.colors.text}
-            family="Ionicons"
-          />
+          <Icon name={ICONS.PROFILE} size={24} color={theme.colors.text} family="Ionicons" />
         </TouchableOpacity>
       </View>
       {error && (
@@ -177,9 +179,7 @@ export const FeedScreen: React.FC = () => {
         onEndReachedThreshold={0.8}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
-        refreshControl={
-          <RefreshControl refreshing={isLoading} onRefresh={refresh} />
-        }
+        refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
         // Memory optimization: track visible items to pause off-screen videos
         viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
         initialNumToRender={2}
@@ -189,4 +189,3 @@ export const FeedScreen: React.FC = () => {
     </SafeAreaView>
   );
 };
-

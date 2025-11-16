@@ -1,10 +1,11 @@
 import {StyleSheet} from 'react-native';
+import {theme} from '@styles/theme';
 
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
     aspectRatio: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     overflow: 'hidden',
   },
   pressable: {
@@ -26,10 +27,10 @@ export const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
   },
   errorContainer: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
   },
 });
 

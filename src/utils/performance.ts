@@ -81,9 +81,9 @@ export const measureRenderTime = <T>(fn: () => T, label?: string): T => {
     return fn();
   }
 
-  const start = performance.now();
+  const start = Date.now();
   const result = fn();
-  const end = performance.now();
+  const end = Date.now();
   const duration = end - start;
 
   if (duration > 16) {

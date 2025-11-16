@@ -96,9 +96,46 @@ export const useFeedRTK = (): UseFeedRTKReturn => {
     [toggleLikeMutation],
   );
 
+  // isLoading should be true during initial fetch OR when we're on page 1 and haven't received data yet
+  // Keep loading true until we either have posts OR we've confirmed there are no posts
+  const isInitialLoading = (() => {
+    // If we're not on page 1 or we already have posts, not initial loading
+    if (page !== 1 || allPosts.length > 0) {
+      return false;
+    }
+
+    // If we're still fetching or loading, show loading
+    if (isLoading || isFetching) {
+      return true;
+    }
+
+    // If we have data with posts but they haven't been processed yet, show loading
+    if (currentPageData !== undefined && currentPageData.posts.length > 0) {
+      return true;
+    }
+
+    // If we've received an empty response (no posts), don't show loading
+    if (
+      currentPageData !== undefined &&
+      currentPageData.posts.length === 0 &&
+      !isFetching &&
+      !isLoading
+    ) {
+      return false;
+    }
+
+    // If we haven't received any data yet and no error, show loading
+    if (currentPageData === undefined && !queryError) {
+      return true;
+    }
+
+    // Default: don't show loading if we have an error
+    return false;
+  })();
+
   return {
     posts: allPosts,
-    isLoading: isLoading && page === 1,
+    isLoading: isInitialLoading,
     isLoadingMore: isFetching && page > 1,
     error: queryError
       ? new Error(

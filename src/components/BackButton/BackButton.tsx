@@ -28,7 +28,9 @@ export const BackButton = React.memo<BackButtonProps>(
       }
     };
 
-    const containerStyle: ViewStyle[] = [styles.container, style];
+    const containerStyle: ViewStyle[] = [styles.container, style].filter(
+      (s): s is ViewStyle => s !== undefined,
+    );
 
     return (
       <Pressable

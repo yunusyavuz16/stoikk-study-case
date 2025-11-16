@@ -51,7 +51,7 @@ export const styles = StyleSheet.create({
   },
   errorContainer: {
     padding: theme.spacing.md,
-    backgroundColor: theme.colors.error + '20',
+    backgroundColor: 'rgba(255, 59, 48, 0.125)', // theme.colors.error with 20% opacity
   },
   errorText: {
     fontSize: theme.typography.fontSize.sm,

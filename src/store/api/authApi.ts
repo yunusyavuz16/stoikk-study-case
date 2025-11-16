@@ -60,7 +60,7 @@ export const authApi = baseApi.injectEndpoints({
           await authService.logout();
           await secureStorageService.clearCredentials();
           return {
-            data: null,
+            data: undefined as void,
           };
         } catch (error) {
           return {

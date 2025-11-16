@@ -1,4 +1,5 @@
 import {StyleSheet, Dimensions} from 'react-native';
+import {theme} from '@styles/theme';
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -6,7 +7,7 @@ export const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: SCREEN_WIDTH, // Square aspect ratio
-    backgroundColor: '#000000',
+    backgroundColor: theme.colors.black,
   },
   scrollView: {
     flex: 1,
@@ -24,7 +25,7 @@ export const styles = StyleSheet.create({
   },
   pagination: {
     position: 'absolute',
-    bottom: 10,
+    bottom: theme.spacing.sm,
     left: 0,
     right: 0,
     flexDirection: 'row',
@@ -34,15 +35,15 @@ export const styles = StyleSheet.create({
   dot: {
     width: 6,
     height: 6,
-    borderRadius: 3,
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    marginHorizontal: 3,
+    borderRadius: theme.borderRadius.sm,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)', // theme.colors.white with 50% opacity
+    marginHorizontal: theme.spacing.xs / 2,
   },
   dotActive: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: theme.colors.white,
     width: 8,
     height: 8,
-    borderRadius: 4,
+    borderRadius: theme.borderRadius.sm,
   },
   loadingContainer: {
     position: 'absolute',
@@ -52,11 +53,11 @@ export const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#F2F2F7',
+    backgroundColor: theme.colors.surface,
     zIndex: 1,
   },
   errorContainer: {
-    backgroundColor: '#E5E5EA',
+    backgroundColor: theme.colors.border,
   },
 });
 
