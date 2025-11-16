@@ -26,7 +26,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 /**
  * Swipeable media carousel component (handles both images and videos)
  * with memory management to prevent OOM crashes
- * CRITICAL: Only renders currently visible video to prevent memory issues
+ * All videos remain mounted to preserve playback position when scrolling
+ * Videos are paused when not visible or not the current carousel index
  */
 export const PostImageCarousel = React.memo<PostImageCarouselProps>(
   ({media, isVisible = true}) => {
@@ -98,20 +99,11 @@ export const PostImageCarousel = React.memo<PostImageCarouselProps>(
       return uri as any;
     };
 
-    // CRITICAL FIX: Only render the currently visible video
-    // This prevents multiple ExoPlayer instances from being created simultaneously
-    const shouldRenderVideo = (index: number) => {
-      // Only render video if:
-      // 1. Post is visible (isVisible = true)
-      // 2. This is the current index in the carousel
-      // 3. It's actually a video
-      return isVisible && index === currentIndex;
-    };
-
     // Determine if video should be paused
     // Video should be paused if:
     // 1. Post is not visible, OR
     // 2. This is not the current index in the carousel
+    // All videos remain mounted to preserve playback position
     const shouldPauseVideo = (index: number) => {
       return !isVisible || index !== currentIndex;
     };
@@ -128,9 +120,6 @@ export const PostImageCarousel = React.memo<PostImageCarouselProps>(
           style={styles.scrollView}
           contentContainerStyle={styles.contentContainer}>
           {media.map((item, index) => {
-            const isVideo = item.type === 'video';
-            const shouldRender = !isVideo || shouldRenderVideo(index);
-
             return (
               <View key={item.id} style={styles.imageContainer}>
                 {item.type === 'image' ? (
@@ -140,9 +129,10 @@ export const PostImageCarousel = React.memo<PostImageCarouselProps>(
                     style={styles.image}
                     resizeMode="cover"
                   />
-                ) : shouldRender ? (
-                  // CRITICAL: Only render Video component when it should be visible
-                  // This prevents ExoPlayer from initializing for off-screen videos
+                ) : (
+                  // Always render videos to preserve playback position
+                  // Videos are paused when not visible or not the current carousel index
+                  // This allows users to resume from where they left off
                   <CustomVideo
                     ref={ref => {
                       if (ref) {
@@ -159,10 +149,6 @@ export const PostImageCarousel = React.memo<PostImageCarouselProps>(
                     enableTapToPlay={isVisible && index === currentIndex}
                     showPlayButton={shouldPauseVideo(index) || (isVisible && index === currentIndex)}
                   />
-                ) : (
-                  // CRITICAL: Render placeholder View instead of Video when not visible
-                  // This prevents ExoPlayer initialization and memory allocation
-                  <View style={[styles.image, { backgroundColor: '#000000' }]} />
                 )}
               </View>
             );
