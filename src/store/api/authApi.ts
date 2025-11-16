@@ -54,13 +54,14 @@ export const authApi = baseApi.injectEndpoints({
     /**
      * Logout mutation
      */
-    logout: builder.mutation<void, void>({
+    logout: builder.mutation<null, void>({
       queryFn: async () => {
         try {
           await authService.logout();
           await secureStorageService.clearCredentials();
+          // Return null for mutations that don't return meaningful data
           return {
-            data: undefined as void,
+            data: null,
           };
         } catch (error) {
           return {
