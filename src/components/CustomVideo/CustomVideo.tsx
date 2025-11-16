@@ -42,8 +42,8 @@ export const CustomVideo = React.memo(
       const videoRef = useRef<VideoRef | null>(null);
       const [hasError, setHasError] = useState(false);
       const [remainingTime, setRemainingTime] = useState<number | null>(null);
+      const [currentTime, setCurrentTime] = useState<number>(0); // Track actual video playback time
       const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-      const previousPausedForTimerRef = useRef<boolean>(paused);
 
       // Internal play/pause state when tap-to-play is enabled
       // This allows user to manually pause/play while respecting visibility-based autoplay
@@ -141,19 +141,32 @@ export const CustomVideo = React.memo(
       /**
        * Initialize timer with duration
        * Validates that duration is a valid positive number
+       * Only set initial remaining time if not already set (preserves state when video resumes)
        */
       useEffect(() => {
         const validDuration =
           typeof duration === 'number' && !isNaN(duration) && isFinite(duration) && duration > 0;
-        if (validDuration) {
+        if (validDuration && remainingTime === null) {
+          // Only initialize if remainingTime is null (first load)
           setRemainingTime(Math.floor(duration));
-        } else {
+        } else if (!validDuration) {
           setRemainingTime(null);
         }
-      }, [duration]);
+      }, [duration, remainingTime]);
 
       /**
-       * Handle timer countdown
+       * Update remaining time based on actual video progress
+       * This ensures timer reflects the real video position, not just a countdown
+       */
+      useEffect(() => {
+        if (duration && duration > 0 && currentTime >= 0) {
+          const calculatedRemaining = Math.max(0, Math.floor(duration - currentTime));
+          setRemainingTime(calculatedRemaining);
+        }
+      }, [currentTime, duration]);
+
+      /**
+       * Handle timer countdown (fallback for when onProgress doesn't fire frequently enough)
        * Timer only runs when video is visible and playing
        */
       useEffect(() => {
@@ -163,13 +176,14 @@ export const CustomVideo = React.memo(
           intervalRef.current = null;
         }
 
-        // Only run timer if:
+        // Only run interval as fallback if:
         // 1. Timer is enabled
         // 2. Duration is provided
         // 3. Video is not paused (playing)
         // 4. There's remaining time
         // 5. Video is visible (showTimer is true, which means isVisible && !paused)
         // 6. No error occurred
+        // Note: onProgress should be the primary source of truth, this is just a fallback
         if (
           showTimer &&
           duration &&
@@ -180,12 +194,18 @@ export const CustomVideo = React.memo(
           !hasError
         ) {
           intervalRef.current = setInterval(() => {
-            setRemainingTime(prev => {
-              if (prev === null || prev <= 0) {
-                return 0;
-              }
-              return prev - 1;
-            });
+            // Update based on currentTime if available, otherwise decrement
+            if (currentTime > 0 && duration > 0) {
+              const calculatedRemaining = Math.max(0, Math.floor(duration - currentTime));
+              setRemainingTime(calculatedRemaining);
+            } else {
+              setRemainingTime(prev => {
+                if (prev === null || prev <= 0) {
+                  return 0;
+                }
+                return prev - 1;
+              });
+            }
           }, 1000);
         } else if ((actualPaused || hasError) && intervalRef.current) {
           // Stop timer immediately when video is paused or has error
@@ -200,44 +220,30 @@ export const CustomVideo = React.memo(
             intervalRef.current = null;
           }
         };
-      }, [showTimer, duration, actualPaused, remainingTime, hasError]);
+      }, [showTimer, duration, actualPaused, remainingTime, hasError, currentTime]);
 
       /**
        * Reset timer when video ends (resets for repeat or when video loops)
        */
       const handleEnd = useCallback(() => {
-        // Reset timer when video ends (works for both repeat and non-repeat)
+        // Reset timer and current time when video ends
         if (duration && duration > 0) {
-          setRemainingTime(duration);
+          setCurrentTime(0);
+          setRemainingTime(Math.floor(duration));
         }
         onEnd?.();
       }, [duration, onEnd]);
 
       /**
-       * Reset timer when video starts playing (if it was paused)
-       * This ensures timer resets when video becomes visible and auto-plays
+       * Reset timer when video loops/repeats
+       * When currentTime resets to near 0 after being near the end, video looped
        */
       useEffect(() => {
-        // If video was paused and now is playing, reset timer
-        if (previousPausedForTimerRef.current && !actualPaused && duration && duration > 0) {
+        // If currentTime resets to near 0 and we were near the end, video likely looped
+        if (currentTime < 0.5 && remainingTime !== null && remainingTime < 1 && repeat && duration && duration > 0) {
           setRemainingTime(Math.floor(duration));
         }
-        previousPausedForTimerRef.current = actualPaused;
-      }, [actualPaused, duration]);
-
-      /**
-       * Reset timer when remaining time reaches 0 (video ended)
-       */
-      useEffect(() => {
-        if (remainingTime === 0 && duration && duration > 0 && repeat) {
-          // If video is set to repeat, reset timer after a brief delay
-          const resetTimer = setTimeout(() => {
-            setRemainingTime(duration);
-          }, 100);
-          return () => clearTimeout(resetTimer);
-        }
-        return undefined;
-      }, [remainingTime, duration, repeat]);
+      }, [currentTime, remainingTime, repeat, duration]);
 
       // Aggressive buffer configuration to prevent OOM crashes
       const bufferConfig = aggressiveMemoryMode
@@ -260,6 +266,9 @@ export const CustomVideo = React.memo(
           // When tap-to-play is disabled, sync with paused prop
           setInternalPaused(false);
         }
+        // Note: OnLoadData doesn't include currentTime, so we rely on onProgress
+        // to set the correct currentTime when video starts/resumes playing
+        // The timer will update automatically when onProgress fires
         onLoad?.(data);
       };
 
@@ -274,6 +283,17 @@ export const CustomVideo = React.memo(
       };
 
       const handleProgress = (data: OnProgressData) => {
+        // Update current time from video progress
+        // This is the source of truth for video position
+        const newCurrentTime = data.currentTime;
+        setCurrentTime(newCurrentTime);
+
+        // Calculate remaining time based on actual video progress
+        if (duration && duration > 0) {
+          const calculatedRemaining = Math.max(0, Math.floor(duration - newCurrentTime));
+          setRemainingTime(calculatedRemaining);
+        }
+
         onProgress?.(data);
       };
 
