@@ -1,7 +1,7 @@
 import { ImageWithThumbnail } from '@/components/Organisms/ImageWithThumbnail/ImageWithThumbnail';
 import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useTheme } from '@hooks/useTheme';
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import Animated, { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
@@ -20,7 +20,7 @@ interface PostImageCarouselProps {
 export const PostImageCarousel: React.FC<PostImageCarouselProps> = ({ media }) => {
   const { theme } = useTheme();
   const { width: SCREEN_WIDTH } = useBreakpoint();
-  const styles = useMemo(() => createStyles(theme, SCREEN_WIDTH), [SCREEN_WIDTH, theme]);
+  const styles = createStyles(theme, SCREEN_WIDTH);
 
   const scrollX = useSharedValue(0);
   const currentIndexShared = useSharedValue(0);

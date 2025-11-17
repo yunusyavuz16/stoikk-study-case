@@ -8,13 +8,6 @@ import FastImage from 'react-native-fast-image';
 import { createStyles } from './MediaGridItem.styles';
 import type { MediaGridItemProps } from './MediaGridItemProps';
 
-/**
- * Individual media grid item component
- * Videos auto-play when visible based on viewability
- * Uses progressive image loading and optimized video player
- * Items are not pressable (no navigation to detail screen)
- */
-
 export const MediaGridItem: React.FC<MediaGridItemProps> = React.memo(
   ({ id, type, uri, thumbnail, duration, isVisible }) => {
     const { theme } = useTheme();

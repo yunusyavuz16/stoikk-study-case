@@ -12,18 +12,8 @@ export const createStyles = (theme: Theme, breakpoint: Breakpoint = 'sm') =>
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: getResponsiveSpacing('md', breakpoint),
-      paddingVertical: getResponsiveSpacing('sm', breakpoint),
-      gap: getResponsiveSpacing('sm', breakpoint),
-    },
     backButton: {
       padding: getResponsiveSpacing('xs', breakpoint),
-    },
-    searchBarContainer: {
-      flex: 1,
     },
     loadingContainer: {
       flex: 1,

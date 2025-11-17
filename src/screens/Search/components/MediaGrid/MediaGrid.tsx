@@ -4,7 +4,7 @@ import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
 import { useTheme } from '@hooks/useTheme';
 import React, { useEffect, useRef } from 'react';
 import { FlatList, Platform, View } from 'react-native';
-import type { MediaItem } from '../../../types/post.types';
+import type { MediaItem } from '../../../../types/post.types';
 import { createStyles } from './MediaGrid.styles';
 import { MediaGridItem } from './components/MediaGridItem';
 

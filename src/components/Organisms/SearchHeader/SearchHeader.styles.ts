@@ -4,27 +4,28 @@ import type { Theme } from '@styles/theme';
 import type { Breakpoint } from '@utils/breakpoints';
 
 /**
- * Creates styles for the feed header component.
+ * Creates responsive styles for the shared search header component.
  */
 export const createStyles = (theme: Theme, breakpoint: Breakpoint) =>
   StyleSheet.create({
-    header: {
+    container: {
       flexDirection: 'row',
       alignItems: 'center',
+      backgroundColor: theme.colors.background,
+      gap: getResponsiveSpacing('sm', breakpoint),
       paddingHorizontal: getResponsiveSpacing('md', breakpoint),
       paddingVertical: getResponsiveSpacing('sm', breakpoint),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
+    },
+    accessory: {
+      justifyContent: 'center',
+      alignItems: 'center',
     },
     searchBarContainer: {
       flex: 1,
-      marginRight: getResponsiveSpacing('sm', breakpoint),
     },
     searchBarContent: {
       flex: 1,
     },
-    profileButton: {
-      padding: getResponsiveSpacing('sm', breakpoint),
-    },
   });
+
 

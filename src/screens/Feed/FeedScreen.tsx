@@ -1,9 +1,9 @@
 import { ThemedText } from '@/components/Atoms/ThemedText/ThemedText';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
 import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
-import { FeedHeader } from '@/components/Molecules/FeedHeader/FeedHeader';
 import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { Post } from '@/components/Organisms/Post/Post';
+import { FeedHeader } from '@/screens/Feed/components/FeedHeader/FeedHeader';
 import { useFeedRTK } from '@/screens/Feed/hooks/useFeedRTK';
 import { useBreakpoint } from '@hooks/useBreakpoint';
 import { useImagePrefetch } from '@hooks/useImagePrefetch';
