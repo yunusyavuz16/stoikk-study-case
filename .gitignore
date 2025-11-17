@@ -79,3 +79,7 @@ yarn-error.log
 npmcache
 yarn.lock
 package-lock.json
+
+npmcache
+
+Podfile.lock

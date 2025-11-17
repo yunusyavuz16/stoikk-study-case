@@ -1,14 +1,15 @@
-import React, {useMemo} from 'react';
-import {View, ActivityIndicator, StyleSheet} from 'react-native';
+import React, {useMemo, useCallback} from 'react';
+import {View, ActivityIndicator, StyleSheet, ViewStyle} from 'react-native';
 import FastImage, {type ResizeMode} from 'react-native-fast-image';
-import {useProgressiveImage} from '@hooks/useProgressiveImage';
+import {useProgressiveImage} from '@/components/ImageWithThumbnail/hooks/useProgressiveImage';
 import {imageCacheService, CachePriority} from '@services/imageCacheService';
 import {useTheme} from '@hooks/useTheme';
+import { getCacheMode } from './utils/imageUtils';
 
 interface ImageWithThumbnailProps {
   uri: string | number;
   thumbnailUri?: string | number;
-  style?: any;
+  style?: ViewStyle;
   resizeMode?: ResizeMode;
   onLoad?: () => void;
   onError?: () => void;
@@ -16,15 +17,26 @@ interface ImageWithThumbnailProps {
 
 /**
  * Progressive image loading component
- * Shows thumbnail first, then loads full image
- * Provides smooth transition from placeholder → thumbnail → full image
+ *
+ * Features:
+ * - Always displays thumbnail first when available (no black placeholders)
+ * - Smooth transition from thumbnail → full image
+ * - Optimized caching with proper priority levels
+ * - Handles all edge cases (missing thumbnail, errors, local assets, URLs)
+ * - No flickering or blank frames
+ *
+ * Rendering strategy:
+ * 1. Thumbnail layer (z-index: 2) - shown until full image loads
+ * 2. Full image layer (z-index: 1) - loads in background
+ * 3. Loading indicator (z-index: 3) - only shown if no thumbnail available
+ * 4. Error state - shown if both thumbnail and full image fail
  */
 export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
   ({
     uri,
     thumbnailUri,
     style,
-    resizeMode = 'cover' as ResizeMode,
+    resizeMode = 'cover',
     onLoad,
     onError,
   }) => {
@@ -32,49 +44,85 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
     const {
       imageUri,
       thumbnailUri: thumbUri,
-      isLoading,
+      isFullImageLoaded,
       hasError,
-      onLoad: handleLoad,
-      onError: handleError,
+      onLoad: handleFullImageLoad,
+      onError: handleFullImageError,
       onThumbnailLoad,
     } = useProgressiveImage(uri, thumbnailUri);
 
-    const handleImageLoad = () => {
-      handleLoad();
+    // Memoized callbacks to prevent unnecessary re-renders
+    const handleImageLoad = useCallback(() => {
+      handleFullImageLoad();
       onLoad?.();
-    };
+    }, [handleFullImageLoad, onLoad]);
 
-    const handleImageError = () => {
-      handleError();
+    const handleImageError = useCallback(() => {
+      handleFullImageError();
       onError?.();
-    };
+    }, [handleFullImageError, onError]);
+
+    const handleThumbnailLoad = useCallback(() => {
+      onThumbnailLoad();
+    }, [onThumbnailLoad]);
 
     // Get optimized cache source for thumbnail
     const thumbnailSource = useMemo(() => {
       if (!thumbUri) return null;
-      return imageCacheService.getCacheSource(thumbUri, 'immutable', CachePriority.HIGH);
+      const cacheMode = getCacheMode(thumbUri);
+      return imageCacheService.getCacheSource(thumbUri, cacheMode, CachePriority.HIGH);
     }, [thumbUri]);
 
     // Get optimized cache source for full image
     const fullImageSource = useMemo(() => {
-      return imageCacheService.getCacheSource(imageUri, 'immutable', CachePriority.NORMAL);
+      const cacheMode = getCacheMode(imageUri);
+      return imageCacheService.getCacheSource(imageUri, cacheMode, CachePriority.NORMAL);
     }, [imageUri]);
+
+    // Determine if thumbnail should be visible
+    // Show thumbnail if available and full image hasn't loaded yet
+    // Also show thumbnail if full image failed but thumbnail is available (fallback)
+    const shouldShowThumbnail = useMemo(() => {
+      if (thumbUri === null || thumbnailSource === null) return false;
+      // Show thumbnail until full image loads, or if full image failed (as fallback)
+      return !isFullImageLoaded;
+    }, [thumbUri, thumbnailSource, isFullImageLoaded]);
+
+    // Show loading indicator only if no thumbnail is available and image is loading
+    // Don't show if there's an error (error state will be shown instead)
+    const shouldShowLoading = useMemo(() => {
+      return thumbUri === null && !isFullImageLoaded && !hasError;
+    }, [thumbUri, isFullImageLoaded, hasError]);
 
     const styles = useMemo(
       () =>
         StyleSheet.create({
           container: {
             overflow: 'hidden',
+            backgroundColor: 'transparent',
+          },
+          imageLayer: {
+            ...StyleSheet.absoluteFillObject,
+          },
+          thumbnailLayer: {
+            ...StyleSheet.absoluteFillObject,
+            zIndex: 2,
+          },
+          fullImageLayer: {
+            ...StyleSheet.absoluteFillObject,
+            zIndex: 1,
           },
           loadingContainer: {
-            ...StyleSheet.absoluteFill,
+            ...StyleSheet.absoluteFillObject,
             justifyContent: 'center',
             alignItems: 'center',
             backgroundColor: 'transparent',
-            zIndex: 2,
+            zIndex: 3,
           },
           errorContainer: {
+            ...StyleSheet.absoluteFillObject,
             backgroundColor: theme.colors.border,
+            zIndex: 1,
           },
         }),
       [theme.colors.border],
@@ -82,41 +130,44 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
 
     return (
       <View style={[styles.container, style]} pointerEvents="none">
-        {/* Full image layer - always rendered so it can load */}
-        {!hasError ? (
-          <>
-            {/* Only show loading indicator if no thumbnail is available */}
-            {isLoading && !thumbUri && (
-              <View style={styles.loadingContainer} pointerEvents="none">
-                <ActivityIndicator size="small" color={theme.colors.white} />
-              </View>
-            )}
-            <View style={StyleSheet.absoluteFill} pointerEvents="none">
-              <FastImage
-                source={fullImageSource}
-                style={StyleSheet.absoluteFill}
-                resizeMode={resizeMode}
-                onLoad={handleImageLoad}
-                onError={handleImageError}
-                pointerEvents="none"
-              />
-            </View>
-          </>
-        ) : (
-          <View style={[StyleSheet.absoluteFill, styles.errorContainer]} pointerEvents="none" />
-        )}
-
-        {/* Thumbnail layer - visible while loading at full opacity, hidden when full image loads */}
-        {thumbUri && !hasError && thumbnailSource && isLoading && (
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        {/* Full image layer - always rendered to allow background loading */}
+        {/* Only hide if error occurred AND no thumbnail is available as fallback */}
+        {(!hasError || (hasError && thumbUri === null)) && (
+          <View style={styles.fullImageLayer} pointerEvents="none">
             <FastImage
-              source={thumbnailSource}
-              style={StyleSheet.absoluteFill}
+              source={fullImageSource}
+              style={styles.imageLayer}
               resizeMode={resizeMode}
-              onLoad={onThumbnailLoad}
+              onLoad={handleImageLoad}
+              onError={handleImageError}
               pointerEvents="none"
             />
           </View>
+        )}
+
+        {/* Thumbnail layer - shown on top until full image loads */}
+        {shouldShowThumbnail && thumbnailSource !== null && (
+          <View style={styles.thumbnailLayer} pointerEvents="none">
+            <FastImage
+              source={thumbnailSource}
+              style={styles.imageLayer}
+              resizeMode={resizeMode}
+              onLoad={handleThumbnailLoad}
+              pointerEvents="none"
+            />
+          </View>
+        )}
+
+        {/* Loading indicator - only shown when no thumbnail is available */}
+        {shouldShowLoading && (
+          <View style={styles.loadingContainer} pointerEvents="none">
+            <ActivityIndicator size="small" color={theme.colors.textSecondary} />
+          </View>
+        )}
+
+        {/* Error state - shown only when both thumbnail and full image fail */}
+        {hasError && thumbUri === null && (
+          <View style={styles.errorContainer} pointerEvents="none" />
         )}
       </View>
     );
