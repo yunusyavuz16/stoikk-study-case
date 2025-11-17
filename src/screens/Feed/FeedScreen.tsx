@@ -1,11 +1,9 @@
 import { EmptyState } from '@components/EmptyState/EmptyState';
-import { Icon } from '@components/Icon/Icon';
+import { FeedHeader } from '@components/FeedHeader/FeedHeader';
 import { Post } from '@components/Post/Post';
-import { SearchBar } from '@components/SearchBar/SearchBar';
 import { PostSkeleton } from '@components/Skeleton/Skeleton';
 import { ThemedText } from '@components/ThemedText/ThemedText';
 import { ThemedView } from '@components/ThemedView/ThemedView';
-import { ICONS } from '@constants/icons.constants';
 import { useBreakpoint } from '@hooks/useBreakpoint';
 import { useFeedRTK } from '@hooks/useFeedRTK';
 import { useImagePrefetch } from '@hooks/useImagePrefetch';
@@ -14,15 +12,8 @@ import { useTheme } from '@hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getResponsiveSpacing } from '@styles/theme';
-import React, { useEffect, useMemo, useRef } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  TouchableOpacity,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { ActivityIndicator, FlatList, RefreshControl, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
 import type { Post as PostType } from '../../types/post.types';
@@ -76,9 +67,12 @@ export const FeedScreen: React.FC = () => {
     navigation.navigate('Profile');
   };
 
-  const handleLike = (postId: string) => {
-    toggleLike(postId);
-  };
+  const handleLike = useCallback(
+    (postId: string) => {
+      toggleLike(postId);
+    },
+    [],
+  );
 
   const handleEndReached = () => {
     if (hasMore && !isLoadingMore) {
@@ -106,7 +100,21 @@ export const FeedScreen: React.FC = () => {
     const isVisible = isItemVisible(index);
     return (
       <View style={numColumns > 1 ? { width: postWidth } : undefined}>
-        <Post post={item} onLike={handleLike} isVisible={isVisible} />
+        <Post
+          id={item.id}
+          userId={item.userId}
+          username={item.username}
+          userAvatar={item.userAvatar}
+          type={item.type}
+          media={item.media}
+          caption={item.caption}
+          likes={item.likes}
+          comments={item.comments}
+          timestamp={item.timestamp}
+          isLiked={item.isLiked}
+          onLike={handleLike}
+          isVisible={isVisible}
+        />
       </View>
     );
   };
@@ -122,6 +130,14 @@ export const FeedScreen: React.FC = () => {
   };
 
   const renderFooter = () => {
+    if (!hasMore && posts.length > 0) {
+      return (
+        <ThemedView style={styles.endMessage}>
+          <ThemedText style={styles.endMessageText}>No more posts</ThemedText>
+        </ThemedView>
+      );
+    }
+
     if (!isLoadingMore) {
       return null;
     }
@@ -148,18 +164,7 @@ export const FeedScreen: React.FC = () => {
     }
     // Only show "no posts yet" when loading is complete and there are no posts
     return <EmptyState type="feed" />;
-  }
-
-  const renderEndMessage = () => {
-    if (!hasMore && posts.length > 0) {
-      return (
-        <ThemedView style={styles.endMessage}>
-          <ThemedText style={styles.endMessageText}>No more posts</ThemedText>
-        </ThemedView>
-      );
-    }
-    return null;
-  }
+  };
 
   const viewabilityConfigCallbackPairs = useRef([
     {
@@ -170,25 +175,7 @@ export const FeedScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ThemedView style={styles.header}>
-        <TouchableOpacity
-          style={styles.searchBarContainer}
-          onPress={handleSearchFocus}
-          activeOpacity={1}
-          accessibilityLabel="Go to search"
-          accessibilityRole="button">
-          <View pointerEvents="none" style={{ flex: 1 }}>
-            <SearchBar />
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          onPress={handleProfilePress}
-          style={styles.profileButton}
-          accessibilityLabel="Go to profile"
-          accessibilityRole="button">
-          <Icon name={ICONS.PROFILE} size={24} color={theme.colors.text} family="Ionicons" />
-        </TouchableOpacity>
-      </ThemedView>
+      <FeedHeader onSearchPress={handleSearchFocus} onProfilePress={handleProfilePress} />
       {error && (
         <ThemedView style={styles.errorContainer}>
           <ThemedText style={styles.errorText}>Error: {error.message}</ThemedText>
@@ -217,7 +204,6 @@ export const FeedScreen: React.FC = () => {
         numColumns={numColumns}
         columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
       />
-      {renderEndMessage()}
     </SafeAreaView>
   );
 };

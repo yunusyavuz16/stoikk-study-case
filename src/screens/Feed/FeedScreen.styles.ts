@@ -12,21 +12,6 @@ export const createStyles = (theme: Theme, breakpoint: Breakpoint) =>
       flex: 1,
       backgroundColor: theme.colors.background,
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: getResponsiveSpacing('md', breakpoint),
-      paddingVertical: getResponsiveSpacing('sm', breakpoint),
-      borderBottomWidth: 1,
-      borderBottomColor: theme.colors.border,
-    },
-    searchBarContainer: {
-      flex: 1,
-      marginRight: getResponsiveSpacing('sm', breakpoint),
-    },
-    profileButton: {
-      padding: getResponsiveSpacing('sm', breakpoint),
-    },
     list: {
       flex: 1,
     },
