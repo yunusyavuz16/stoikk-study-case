@@ -1,7 +1,7 @@
 import { STORAGE_KEYS } from '@constants/storage.constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createTheme, type Theme, type ThemeMode } from '@styles/theme';
-import React, { createContext, ReactNode, useEffect, useMemo, useState } from 'react';
+import React, { createContext, ReactNode, useEffect, useState } from 'react';
 import { Appearance } from 'react-native';
 
 /**
@@ -89,15 +89,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   const theme = createTheme(mode);
 
-  const value: ThemeContextValue = useMemo(
-    () => ({
-      theme,
-      mode,
-      setTheme,
-      isInitialized,
-    }),
-    [theme, mode, isInitialized],
-  );
+  const value: ThemeContextValue = {
+    theme,
+    mode,
+    setTheme,
+    isInitialized,
+  };
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 };
