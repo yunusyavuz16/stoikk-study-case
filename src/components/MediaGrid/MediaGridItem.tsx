@@ -1,10 +1,12 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import {ImageWithThumbnail} from '@components/ImageWithThumbnail/ImageWithThumbnail';
+import FastImage from 'react-native-fast-image';
 import {PostVideo} from '@components/PostVideo/PostVideo';
 import {createStyles} from './MediaGridItem.styles';
 import {useTheme} from '@hooks/useTheme';
 import type {MediaGridItemProps} from './MediaGridItemProps';
+import {imageCacheService, CachePriority} from '@services/imageCacheService';
+import {getCacheMode} from '@components/ImageWithThumbnail/utils/imageUtils';
 
 /**
  * Individual media grid item component
@@ -13,34 +15,43 @@ import type {MediaGridItemProps} from './MediaGridItemProps';
  * Items are not pressable (no navigation to detail screen)
  */
 
-export const MediaGridItem = React.memo<MediaGridItemProps>(
-  ({item, isVisible}) => {
-    const {theme} = useTheme();
-    const styles = createStyles(theme);
+export const MediaGridItem = React.memo<MediaGridItemProps>(({item, isVisible}) => {
+  const {theme} = useTheme();
+  const styles = createStyles(theme);
 
-    return (
-      <View style={styles.container} pointerEvents="none">
-        {item.type === 'image' ? (
-          <ImageWithThumbnail
-            uri={item.uri}
-            thumbnailUri={item.thumbnail}
-            style={styles.image}
-            resizeMode="cover"
-          />
-        ) : (
-          <PostVideo
-            video={item}
-            paused={!isVisible}
-            isVisible={isVisible}
-            showPlayButton={false}
-            showTimer={true}
-            enableTapToPlay={false}
-          />
-        )}
-      </View>
+  // Grid için sadece thumbnail göster: daha düşük çözünürlük, daha az decode maliyeti
+  const thumbnailUri = item.thumbnail ?? item.uri;
+
+  const thumbnailSource = useMemo(() => {
+    const cacheMode = getCacheMode(thumbnailUri);
+    return imageCacheService.getCacheSource(
+      thumbnailUri,
+      cacheMode,
+      CachePriority.HIGH,
     );
-  },
-);
+  }, [thumbnailUri]);
+
+  return (
+    <View style={styles.container} pointerEvents="none">
+      {item.type === 'image' ? (
+        <FastImage
+          source={thumbnailSource}
+          style={styles.image}
+          resizeMode={FastImage.resizeMode.cover}
+        />
+      ) : (
+        <PostVideo
+          video={item}
+          paused={!isVisible}
+          isVisible={isVisible}
+          showPlayButton={false}
+          showTimer={true}
+          enableTapToPlay={false}
+        />
+      )}
+    </View>
+  );
+});
 
 MediaGridItem.displayName = 'MediaGridItem';
 

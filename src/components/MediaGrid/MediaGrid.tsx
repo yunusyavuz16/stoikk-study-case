@@ -1,5 +1,5 @@
 import React, {useCallback, useRef, useEffect, useMemo} from 'react';
-import {View, FlatList, Dimensions} from 'react-native';
+import {View, FlatList, Dimensions, Platform} from 'react-native';
 import {MediaGridItem} from './MediaGridItem';
 import {useMediaPlayerVisibility} from '@hooks/useMediaPlayerVisibility';
 import {useBreakpoint} from '@hooks/useBreakpoint';
@@ -23,7 +23,7 @@ const {width: SCREEN_WIDTH} = Dimensions.get('window');
 export const MediaGrid = React.memo<MediaGridProps>(
   ({data, numColumns: propNumColumns}) => {
     const {theme} = useTheme();
-    const styles = createStyles(theme);
+    const styles = useMemo(() => createStyles(theme), [theme]);
     const {breakpoint} = useBreakpoint();
     const {visibleItems, onViewableItemsChanged, isItemVisible} = useMediaPlayerVisibility(50);
     const {prefetchImages} = useImagePrefetch();
@@ -105,11 +105,11 @@ export const MediaGrid = React.memo<MediaGridProps>(
           keyExtractor={keyExtractor}
           numColumns={numColumns}
           style={styles.grid}
-          removeClippedSubviews={true}
-          maxToRenderPerBatch={8}
-          windowSize={3}
-          initialNumToRender={6}
-          updateCellsBatchingPeriod={50}
+          removeClippedSubviews={Platform.OS === 'android'}
+          maxToRenderPerBatch={Platform.OS === 'android' ? 6 : 8}
+          windowSize={Platform.OS === 'android' ? 5 : 3}
+          initialNumToRender={Platform.OS === 'android' ? 12 : 6}
+          updateCellsBatchingPeriod={Platform.OS === 'android' ? 80 : 50}
           getItemLayout={getItemLayout}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig.current}

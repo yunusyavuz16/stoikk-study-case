@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useState, useCallback, useMemo, useRef} from 'react';
 import {TextInput} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -10,7 +10,6 @@ import {EmptyState} from '@components/EmptyState/EmptyState';
 import {BackButton} from '@components/BackButton/BackButton';
 import {useSearchRTK} from '@hooks/useSearchRTK';
 import {useBreakpoint} from '@hooks/useBreakpoint';
-import {useImagePrefetch} from '@hooks/useImagePrefetch';
 import {GridSkeleton} from '@components/Skeleton/Skeleton';
 import {createStyles} from './SearchScreen.styles';
 
@@ -22,12 +21,11 @@ import {createStyles} from './SearchScreen.styles';
  */
 export const SearchScreen: React.FC = () => {
   const {theme} = useTheme();
-  const styles = createStyles(theme);
   const {media, isLoading, error, search, clearSearch, hasInitialContent} = useSearchRTK();
   const {breakpoint} = useBreakpoint();
-  const {prefetchImages} = useImagePrefetch();
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<TextInput>(null);
+  const styles = useMemo(() => createStyles(theme), [theme]);
 
   // Calculate responsive numColumns based on breakpoint
   const numColumns = useMemo(() => {
@@ -43,27 +41,16 @@ export const SearchScreen: React.FC = () => {
   const handleSearchChange = useCallback(
     (text: string) => {
       setSearchQuery(text);
-      if (text.trim()) {
-        search(text.trim());
+      const trimmed = text.trim();
+
+      if (trimmed) {
+        search(trimmed);
       } else {
         clearSearch();
       }
     },
     [search, clearSearch],
   );
-
-  // Prefetch visible media items with thumbnails
-  useEffect(() => {
-    if (media.length > 0) {
-      const visibleItems = media.slice(0, 12); // First 12 items
-      const imageItems = visibleItems
-        .filter(item => item.type === 'image')
-        .map(item => ({uri: item.uri, thumbnailUri: item.thumbnail}));
-      if (imageItems.length > 0) {
-        prefetchImages(imageItems);
-      }
-    }
-  }, [media, prefetchImages]);
 
   // Auto-focus search input when screen is focused
   useFocusEffect(

@@ -42,15 +42,7 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
       onLoad: handleFullImageLoad,
       onError: handleFullImageError,
       onThumbnailLoad,
-    } = useProgressiveImage(
-      'https://images3.alphacoders.com/134/1341103.jpeg',
-      thumbnailUri,
-    );
-
-    console.log('isFullImageLoaded', isFullImageLoaded);
-    console.log('hasError', hasError);
-    console.log('thumbUri', thumbUri);
-    console.log('imageUri', imageUri);
+    } = useProgressiveImage(uri, thumbnailUri);
 
     // Memoized callbacks to prevent unnecessary re-renders
     const handleImageLoad = useCallback(() => {

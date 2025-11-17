@@ -301,6 +301,17 @@ export const CustomVideo = React.memo(
         onProgress?.(data);
       };
 
+      // Use a retry counter to force remount when retrying after error
+      const retryKeyRef = useRef(0);
+      const previousHasErrorRef = useRef(hasError);
+      useEffect(() => {
+        // Increment retry key when error is cleared (allows retry)
+        if (previousHasErrorRef.current && !hasError) {
+          retryKeyRef.current += 1;
+        }
+        previousHasErrorRef.current = hasError;
+      }, [hasError]);
+
       // Validate source
       const isValidSource =
         source &&
@@ -332,17 +343,6 @@ export const CustomVideo = React.memo(
         hasError ||
         (enableTapToPlay && actualPaused) ||
         (!enableTapToPlay && showPlayButton && actualPaused);
-
-      // Use a retry counter to force remount when retrying after error
-      const retryKeyRef = useRef(0);
-      const previousHasErrorRef = useRef(hasError);
-      useEffect(() => {
-        // Increment retry key when error is cleared (allows retry)
-        if (previousHasErrorRef.current && !hasError) {
-          retryKeyRef.current += 1;
-        }
-        previousHasErrorRef.current = hasError;
-      }, [hasError]);
 
       const videoElement = (
         <Video
