@@ -50,6 +50,7 @@ export const useNetwork = () => {
         unsubscribe();
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return {

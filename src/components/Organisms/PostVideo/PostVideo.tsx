@@ -1,6 +1,6 @@
 import { CustomVideo } from '@/components/Organisms/CustomVideo/CustomVideo';
 import { useTheme } from '@hooks/useTheme';
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View } from 'react-native';
 import FastImage from 'react-native-fast-image';
 import type { OnLoadData } from 'react-native-video';

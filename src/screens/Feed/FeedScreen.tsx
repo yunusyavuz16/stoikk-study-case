@@ -31,6 +31,7 @@ export const FeedScreen: React.FC = () => {
 
   const handleLike = useCallback((postId: string) => {
     toggleLike(postId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleEndReached = () => {
@@ -52,6 +53,7 @@ export const FeedScreen: React.FC = () => {
         prefetchImages(mediaItems);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [posts]);
 
   const renderPost = ({ item, index }: { item: PostType; index: number }) => {

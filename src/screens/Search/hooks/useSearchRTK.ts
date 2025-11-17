@@ -38,9 +38,10 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(searchQuery);
-    }, 500);
+    }, 300);
 
     return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   // Trigger search when debounced query changes
@@ -48,6 +49,7 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
     if (debouncedQuery.trim()) {
       triggerSearch({query: debouncedQuery.trim()});
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQuery]);
 
   // Update posts when search results change

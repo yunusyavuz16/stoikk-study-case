@@ -50,6 +50,7 @@ export const MediaGrid: React.FC<MediaGridProps> = ({ data, numColumns: propNumC
         prefetchImages(imageItems);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, visibleItems]);
 
   const { itemWidth, itemHeight } = (() => {

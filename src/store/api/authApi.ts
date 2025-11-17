@@ -1,7 +1,7 @@
-import {baseApi} from './baseApi';
-import {authService} from '@services/authService';
-import {secureStorageService} from '@services/secureStorageService';
-import type {User, LoginCredentials} from '../../types/auth.types';
+import { authService } from '@services/authService';
+import { secureStorageService } from '@services/secureStorageService';
+import type { LoginCredentials, User } from '../../types/auth.types';
+import { baseApi } from './baseApi';
 
 interface LoginParams {
   credentials: LoginCredentials;
@@ -21,7 +21,7 @@ export const authApi = baseApi.injectEndpoints({
      * Login mutation
      */
     login: builder.mutation<User, LoginParams>({
-      queryFn: async ({credentials}) => {
+      queryFn: async ({ credentials }) => {
         try {
           const user = await authService.login(credentials);
           // Store credentials securely (non-blocking - login succeeds even if storage fails)
@@ -32,9 +32,7 @@ export const authApi = baseApi.injectEndpoints({
           );
           if (!storageSuccess) {
             // Log warning but don't fail login
-            console.warn(
-              'Could not store credentials securely, but login succeeded',
-            );
+            console.warn('Could not store credentials securely, but login succeeded');
           }
           return {
             data: user,
@@ -85,15 +83,15 @@ export const authApi = baseApi.injectEndpoints({
           if (credentials) {
             const user = await authService.login(credentials);
             return {
-              data: {user},
+              data: { user },
             };
           }
           return {
-            data: {user: null},
+            data: { user: null },
           };
-        } catch (error) {
+        } catch {
           return {
-            data: {user: null}, // Return null on error, don't throw
+            data: { user: null }, // Return null on error, don't throw
           };
         }
       },
@@ -102,9 +100,4 @@ export const authApi = baseApi.injectEndpoints({
   }),
 });
 
-export const {
-  useLoginMutation,
-  useLogoutMutation,
-  useCheckAuthQuery,
-} = authApi;
-
+export const { useLoginMutation, useLogoutMutation, useCheckAuthQuery } = authApi;

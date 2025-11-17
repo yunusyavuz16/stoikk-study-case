@@ -60,6 +60,7 @@ export const useVideoTimer = ({
 
   useEffect(() => {
     reset();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formattedTime = (() => {

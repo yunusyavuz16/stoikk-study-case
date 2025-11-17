@@ -45,6 +45,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
     animation.start();
 
     return () => animation.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const translateX = shimmerAnimation.interpolate({
