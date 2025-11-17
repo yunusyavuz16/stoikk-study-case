@@ -2,7 +2,7 @@
  * Navigation type definitions
  */
 
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -12,5 +12,13 @@ export type RootStackParamList = {
   Profile: undefined;
 };
 
-export type NavigationProp<T extends keyof RootStackParamList> =
-  NativeStackNavigationProp<RootStackParamList, T>;
+export type NavigationProp<T extends keyof RootStackParamList> = NativeStackNavigationProp<
+  RootStackParamList,
+  T
+>;
+
+declare global {
+  namespace ReactNavigation {
+    interface RootParamList extends RootStackParamList {}
+  }
+}

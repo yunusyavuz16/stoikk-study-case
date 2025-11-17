@@ -1,23 +1,27 @@
-import React from 'react';
-import { TouchableOpacity, View } from 'react-native';
 import { Icon } from '@/components/Atoms/Icon/Icon';
-import { SearchBar } from '@/components/Molecules/SearchBar/SearchBar';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
+import { SearchBar } from '@/components/Molecules/SearchBar/SearchBar';
 import { ICONS } from '@constants/icons.constants';
 import { useBreakpoint } from '@hooks/useBreakpoint';
 import { useTheme } from '@hooks/useTheme';
+import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { createStyles } from './FeedHeader.styles';
 
-
-export interface FeedHeaderProps {
-  onSearchPress: () => void;
-  onProfilePress: () => void;
-}
-
-export const FeedHeader: React.FC<FeedHeaderProps> = ({ onSearchPress, onProfilePress }) => {
+export const FeedHeader: React.FC = () => {
   const { theme } = useTheme();
   const { breakpoint } = useBreakpoint();
   const styles = createStyles(theme, breakpoint);
+  const navigation = useNavigation();
+
+  const onSearchPress = () => {
+    navigation.navigate('Search');
+  };
+
+  const onProfilePress = () => {
+    navigation.navigate('Profile');
+  };
 
   return (
     <ThemedView style={styles.header}>
@@ -41,4 +45,3 @@ export const FeedHeader: React.FC<FeedHeaderProps> = ({ onSearchPress, onProfile
     </ThemedView>
   );
 };
-

@@ -1,77 +1,33 @@
-import { useFeedRTK } from '@/screens/Feed/hooks/useFeedRTK';
-import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
-import { FeedHeader } from '@/components/Molecules/FeedHeader/FeedHeader';
-import { Post } from '@/components/Organisms/Post/Post';
-import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { ThemedText } from '@/components/Atoms/ThemedText/ThemedText';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
+import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
+import { FeedHeader } from '@/components/Molecules/FeedHeader/FeedHeader';
+import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
+import { Post } from '@/components/Organisms/Post/Post';
+import { useFeedRTK } from '@/screens/Feed/hooks/useFeedRTK';
 import { useBreakpoint } from '@hooks/useBreakpoint';
 import { useImagePrefetch } from '@hooks/useImagePrefetch';
 import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
 import { useTheme } from '@hooks/useTheme';
-import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { getResponsiveSpacing } from '@styles/theme';
 import React, { useCallback, useEffect, useRef } from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  RefreshControl,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import type { RootStackParamList } from '../../navigation/types';
 import type { Post as PostType } from '../../types/post.types';
 import { createStyles } from './FeedScreen.styles';
 
-/**
- * Feed screen displaying posts in a scrollable list with infinite scroll
- * with memory optimization to prevent OOM crashes
- */
 export const FeedScreen: React.FC = () => {
   const { theme } = useTheme();
-  const { width: screenWidth } = useWindowDimensions();
-  const { breakpoint, isTablet } = useBreakpoint();
+  const { breakpoint } = useBreakpoint();
   const styles = createStyles(theme, breakpoint);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore, toggleLike } =
     useFeedRTK();
   const { prefetchImages } = useImagePrefetch();
   const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
 
-  // Tablet optimization: Use 2-3 column layout for tablets
-  const numColumns = (() => {
-    if (!isTablet) return 1; // Single column for phones
-    if (breakpoint === 'xl' || breakpoint === 'lg') return 3; // 3 columns for large tablets
-    return 2; // 2 columns for medium tablets
-  })();
-
-  // Calculate post width for multi-column layout
-  const postWidth = (() => {
-    if (numColumns === 1) return undefined; // Let it use full width
-    // For multi-column: calculate width with gaps
-    // Container already has padding, so we use screenWidth directly
-    // Subtract gaps between columns
-    const gap = getResponsiveSpacing('md', breakpoint);
-    const totalGaps = gap * (numColumns - 1);
-    const containerPadding = getResponsiveSpacing('md', breakpoint) * 2;
-    const availableWidth = screenWidth - containerPadding;
-    return (availableWidth - totalGaps) / numColumns;
-  })();
-
   const viewabilityConfigRef = useRef({
     itemVisiblePercentThreshold: 50,
     minimumViewTime: 200,
   });
-
-  const handleSearchFocus = () => {
-    navigation.navigate('Search');
-  };
-
-  const handleProfilePress = () => {
-    navigation.navigate('Profile');
-  };
 
   const handleLike = useCallback((postId: string) => {
     toggleLike(postId);
@@ -101,7 +57,7 @@ export const FeedScreen: React.FC = () => {
   const renderPost = ({ item, index }: { item: PostType; index: number }) => {
     const isVisible = isItemVisible(index);
     return (
-      <View style={numColumns > 1 ? { width: postWidth } : undefined}>
+      <View>
         <Post
           id={item.id}
           userId={item.userId}
@@ -172,7 +128,7 @@ export const FeedScreen: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <FeedHeader onSearchPress={handleSearchFocus} onProfilePress={handleProfilePress} />
+      <FeedHeader />
       {error && (
         <ThemedView style={styles.errorContainer}>
           <ThemedText style={styles.errorText}>Error: {error.message}</ThemedText>
@@ -197,9 +153,6 @@ export const FeedScreen: React.FC = () => {
         viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
         initialNumToRender={2}
         updateCellsBatchingPeriod={100}
-        // Tablet optimization: multi-column layout
-        numColumns={numColumns}
-        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
       />
     </SafeAreaView>
   );

@@ -7,59 +7,60 @@ import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
 import { useBreakpoint } from '@hooks/useBreakpoint';
 import { useSearchRTK } from '@/screens/Search/hooks/useSearchRTK';
 import { useTheme } from '@hooks/useTheme';
-import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createStyles } from './SearchScreen.styles';
+import { useResponsiveColumns } from '@/screens/Search/hooks/useResponsiveColumns';
+import { useSearchInput } from '@/screens/Search/hooks/useSearchInput';
+import { useAutoFocus } from '@/screens/Search/hooks/useAutoFocus';
 
 /**
- * Search screen displaying media in a grid layout
- * Videos auto-play when visible based on viewability
- * Searches posts by caption
- * Items are not clickable (no detail screen navigation)
+ * Displays search results in a responsive grid with auto-playing videos.
  */
 export const SearchScreen: React.FC = () => {
   const {theme} = useTheme();
   const {media, isLoading, error, search, clearSearch, hasInitialContent} = useSearchRTK();
   const {breakpoint} = useBreakpoint();
-  const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<TextInput>(null);
+  const numColumns = useResponsiveColumns({breakpoint});
+  const {searchQuery, handleSearchChange, retrySearch, hasSearchQuery} = useSearchInput({
+    search,
+    clearSearch,
+  });
+  useAutoFocus({inputRef: searchInputRef});
   const styles = createStyles(theme, breakpoint);
 
-  // Calculate responsive numColumns based on breakpoint
-  const numColumns = (() => {
-    if (breakpoint === 'xl' || breakpoint === 'lg') {
-      return 5;
+  const renderContent = () => {
+    if (isLoading) {
+      return <GridSkeleton numColumns={numColumns} />;
     }
-    if (breakpoint === 'md') {
-      return 4;
+
+    if (error) {
+      return (
+        <EmptyState
+          type="network"
+          message={error.message}
+          onRetry={retrySearch}
+        />
+      );
     }
-    return 3;
-  })();
 
-  const handleSearchChange = (text: string) => {
-      setSearchQuery(text);
-      const trimmed = text.trim();
+    if (media.length === 0 && hasSearchQuery) {
+      return <EmptyState type="search" />;
+    }
 
-      if (trimmed) {
-        search(trimmed);
-      } else {
-        clearSearch();
-      }
-  }
+    if (media.length === 0 && !hasInitialContent) {
+      return <GridSkeleton numColumns={numColumns} />;
+    }
 
-  // Auto-focus search input when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      // Small delay to ensure the screen is fully mounted
-      const timer = setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 100);
-      return () => clearTimeout(timer);
-    }, []),
-  );
-
+    return (
+      <MediaGrid
+        data={media}
+        numColumns={numColumns}
+      />
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -74,24 +75,7 @@ export const SearchScreen: React.FC = () => {
           />
         </ThemedView>
       </ThemedView>
-      {isLoading ? (
-        <GridSkeleton numColumns={numColumns} />
-      ) : error ? (
-        <EmptyState
-          type="network"
-          message={error.message}
-          onRetry={() => searchQuery.trim() && search(searchQuery.trim())}
-        />
-      ) : media.length === 0 && searchQuery.trim() ? (
-        <EmptyState type="search" />
-      ) : media.length === 0 && !hasInitialContent ? (
-        <GridSkeleton numColumns={numColumns} />
-      ) : (
-        <MediaGrid
-          data={media}
-          numColumns={numColumns}
-        />
-      )}
+      {renderContent()}
     </SafeAreaView>
   );
 };
