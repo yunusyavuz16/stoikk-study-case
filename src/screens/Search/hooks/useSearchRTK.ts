@@ -13,11 +13,6 @@ interface UseSearchRTKReturn {
   clearSearch: () => void;
 }
 
-/**
- * Hook for managing search functionality with RTK Query
- * Uses debouncing and extracts media from matching posts
- * Loads initial content when no search query is present
- */
 export const useSearchRTK = (): UseSearchRTKReturn => {
   const [searchQuery, setSearchQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
