@@ -36,13 +36,8 @@ export const Post: React.FC<PostProps> = React.memo(
       onLike(id);
     };
 
-    // Determine media rendering:
-    // - Carousel for exactly 2 images (swipeable)
-    // - Single video player for 1 video (no carousel)
     const isImageCarousel = type === 'images' && media.length === 2;
     const isSingleVideo = type === 'video' && media.length === 1;
-
-    // Pause video if post is not visible (memory optimization)
     const shouldPauseVideo = !isVisible;
 
     return (
