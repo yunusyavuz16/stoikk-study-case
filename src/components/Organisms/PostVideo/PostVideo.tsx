@@ -1,8 +1,9 @@
 import { CustomVideo } from '@/components/Organisms/CustomVideo/CustomVideo';
 import { useTheme } from '@hooks/useTheme';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import FastImage from 'react-native-fast-image';
+import type { OnLoadData } from 'react-native-video';
 import type { MediaItem } from '../../../types/post.types';
 import { createStyles } from './PostVideo.styles';
 
@@ -25,6 +26,15 @@ export const PostVideo: React.FC<PostVideoProps> = ({
 }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
+  const [hasVideoError, setHasVideoError] = useState(false);
+
+  const handleVideoLoad = (_event: OnLoadData) => {
+    setHasVideoError(false);
+  };
+
+  const handleVideoError = () => {
+    setHasVideoError(true);
+  };
 
   const getVideoSource = (uri: string | number) => {
     if (typeof uri === 'string') {
@@ -38,10 +48,11 @@ export const PostVideo: React.FC<PostVideoProps> = ({
     if (video.thumbnail) {
       return typeof video.thumbnail === 'string' ? { uri: video.thumbnail } : video.thumbnail;
     }
-    return null;
+    return undefined;
   };
 
   const thumbnailSource = getThumbnailSource();
+  const shouldShowThumbnailFallback = Boolean(thumbnailSource && hasVideoError);
 
   const shouldPause = paused || !isVisible;
 
@@ -54,7 +65,7 @@ export const PostVideo: React.FC<PostVideoProps> = ({
 
   return (
     <View style={styles.container} pointerEvents={shouldEnableTapToPlay ? 'auto' : 'none'}>
-      {thumbnailSource && shouldPause && (
+      {shouldShowThumbnailFallback && (
         <FastImage
           source={thumbnailSource}
           style={styles.thumbnail}
@@ -62,6 +73,7 @@ export const PostVideo: React.FC<PostVideoProps> = ({
           pointerEvents="none"
         />
       )}
+
       <CustomVideo
         source={getVideoSource(video.uri)}
         paused={shouldPause}
@@ -69,6 +81,8 @@ export const PostVideo: React.FC<PostVideoProps> = ({
         showTimer={shouldShowTimer}
         enableTapToPlay={shouldEnableTapToPlay}
         showPlayButton={shouldShowPlayButton}
+        onLoad={handleVideoLoad}
+        onPlaybackError={handleVideoError}
         muted={false}
         repeat={true}
         style={styles.video}

@@ -10,6 +10,7 @@ export interface CustomVideoProps {
   onLoad?: (data: OnLoadData) => void;
   onProgress?: (data: OnProgressData) => void;
   onEnd?: () => void;
+  onPlaybackError?: (error: unknown) => void;
   style?: StyleProp<ViewStyle>;
   aggressiveMemoryMode?: boolean;
   duration?: number; // Video duration in seconds (required for timer)

@@ -22,6 +22,7 @@ export const CustomVideo = forwardRef<VideoRef, CustomVideoProps>(
       onLoad,
       onProgress,
       onEnd,
+      onPlaybackError,
       style,
       aggressiveMemoryMode = true,
       duration,
@@ -94,6 +95,7 @@ export const CustomVideo = forwardRef<VideoRef, CustomVideoProps>(
     const handleVideoError = (error: unknown) => {
       reset();
       handleError(error);
+      onPlaybackError?.(error);
     };
 
     if (!isValidSource) {
