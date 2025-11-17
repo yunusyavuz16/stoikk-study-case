@@ -1,10 +1,12 @@
 import {StyleSheet} from 'react-native';
 import type {Theme} from '@styles/theme';
+import type {Breakpoint} from '@utils/breakpoints';
+import {getResponsiveSpacing, getResponsiveFontSize} from '@styles/theme';
 
 /**
- * Create styles based on theme
+ * Create styles based on theme with responsive values
  */
-export const createStyles = (theme: Theme) =>
+export const createStyles = (theme: Theme, breakpoint: Breakpoint) =>
   StyleSheet.create({
     container: {
       flex: 1,
@@ -13,55 +15,60 @@ export const createStyles = (theme: Theme) =>
     header: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingHorizontal: theme.spacing.md,
-      paddingVertical: theme.spacing.sm,
+      paddingHorizontal: getResponsiveSpacing('md', breakpoint),
+      paddingVertical: getResponsiveSpacing('sm', breakpoint),
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border,
     },
     searchBarContainer: {
       flex: 1,
-      marginRight: theme.spacing.sm,
+      marginRight: getResponsiveSpacing('sm', breakpoint),
     },
     profileButton: {
-      padding: theme.spacing.sm,
+      padding: getResponsiveSpacing('sm', breakpoint),
     },
     list: {
       flex: 1,
     },
     listContent: {
-      paddingBottom: theme.spacing.lg,
+      paddingBottom: getResponsiveSpacing('lg', breakpoint),
+    },
+    columnWrapper: {
+      justifyContent: 'space-between',
+      paddingHorizontal: 0,
+      marginBottom: getResponsiveSpacing('md', breakpoint),
     },
     footerLoader: {
-      paddingVertical: theme.spacing.md,
+      paddingVertical: getResponsiveSpacing('md', breakpoint),
       alignItems: 'center',
     },
     emptyContainer: {
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
-      paddingVertical: theme.spacing.xxl,
+      paddingVertical: getResponsiveSpacing('xxl', breakpoint),
     },
     emptyText: {
-      fontSize: theme.typography.fontSize.md,
+      fontSize: getResponsiveFontSize('md', breakpoint),
       color: theme.colors.textSecondary,
     },
     endMessage: {
-      paddingVertical: theme.spacing.md,
+      paddingVertical: getResponsiveSpacing('md', breakpoint),
       alignItems: 'center',
     },
     endMessageText: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: getResponsiveFontSize('sm', breakpoint),
       color: theme.colors.textSecondary,
     },
     errorContainer: {
-      padding: theme.spacing.md,
+      padding: getResponsiveSpacing('md', breakpoint),
       backgroundColor:
         theme.mode === 'dark'
           ? 'rgba(255, 69, 58, 0.2)'
           : 'rgba(255, 59, 48, 0.125)',
     },
     errorText: {
-      fontSize: theme.typography.fontSize.sm,
+      fontSize: getResponsiveFontSize('sm', breakpoint),
       color: theme.colors.error,
     },
   });

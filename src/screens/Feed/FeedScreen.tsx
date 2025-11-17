@@ -10,15 +10,18 @@ import { useFeedRTK } from '@hooks/useFeedRTK';
 import { useImagePrefetch } from '@hooks/useImagePrefetch';
 import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
 import { useTheme } from '@hooks/useTheme';
+import { useBreakpoint } from '@hooks/useBreakpoint';
+import { getResponsiveSpacing } from '@styles/theme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef, useMemo } from 'react';
 import {
   ActivityIndicator,
   FlatList,
   RefreshControl,
   TouchableOpacity,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
@@ -31,12 +34,34 @@ import { createStyles } from './FeedScreen.styles';
  */
 export const FeedScreen: React.FC = () => {
   const { theme } = useTheme();
-  const styles = createStyles(theme);
+  const { width: screenWidth } = useWindowDimensions();
+  const { breakpoint, isTablet } = useBreakpoint();
+  const styles = createStyles(theme, breakpoint);
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore, toggleLike } =
     useFeedRTK();
   const { prefetchImages } = useImagePrefetch();
   const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
+
+  // Tablet optimization: Use 2-3 column layout for tablets
+  const numColumns = useMemo(() => {
+    if (!isTablet) return 1; // Single column for phones
+    if (breakpoint === 'xl' || breakpoint === 'lg') return 3; // 3 columns for large tablets
+    return 2; // 2 columns for medium tablets
+  }, [isTablet, breakpoint]);
+
+  // Calculate post width for multi-column layout
+  const postWidth = useMemo(() => {
+    if (numColumns === 1) return undefined; // Let it use full width
+    // For multi-column: calculate width with gaps
+    // Container already has padding, so we use screenWidth directly
+    // Subtract gaps between columns
+    const gap = getResponsiveSpacing('md', breakpoint);
+    const totalGaps = gap * (numColumns - 1);
+    const containerPadding = getResponsiveSpacing('md', breakpoint) * 2;
+    const availableWidth = screenWidth - containerPadding;
+    return (availableWidth - totalGaps) / numColumns;
+  }, [numColumns, screenWidth, breakpoint]);
 
   const viewabilityConfigRef = useRef({
     itemVisiblePercentThreshold: 50,
@@ -83,9 +108,13 @@ export const FeedScreen: React.FC = () => {
     ({ item, index }: { item: PostType; index: number }) => {
       // Pause videos for posts that are not visible (memory optimization)
       const isVisible = isItemVisible(index);
-      return <Post post={item} onLike={handleLike} isVisible={isVisible} />;
+      return (
+        <View style={numColumns > 1 ? { width: postWidth } : undefined}>
+          <Post post={item} onLike={handleLike} isVisible={isVisible} />
+        </View>
+      );
     },
-    [handleLike, isItemVisible],
+    [handleLike, isItemVisible, numColumns, postWidth],
   );
 
   const keyExtractor = useCallback((item: PostType, index: number) => {
@@ -191,6 +220,9 @@ export const FeedScreen: React.FC = () => {
         viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
         initialNumToRender={2}
         updateCellsBatchingPeriod={100}
+        // Tablet optimization: multi-column layout
+        numColumns={numColumns}
+        columnWrapperStyle={numColumns > 1 ? styles.columnWrapper : undefined}
       />
       {renderEndMessage()}
     </SafeAreaView>

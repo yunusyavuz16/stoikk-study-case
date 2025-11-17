@@ -1,5 +1,4 @@
-import {useState, useEffect} from 'react';
-import {Dimensions, ScaledSize} from 'react-native';
+import {useWindowDimensions} from 'react-native';
 import {getBreakpoint, isTablet, isPhone, type Breakpoint} from '@utils/breakpoints';
 
 interface UseBreakpointReturn {
@@ -12,29 +11,22 @@ interface UseBreakpointReturn {
 
 /**
  * Hook for responsive breakpoint detection
+ * Uses useWindowDimensions for automatic updates on dimension changes
  * Returns current breakpoint, device type, and screen dimensions
  */
 export const useBreakpoint = (): UseBreakpointReturn => {
-  const [dimensions, setDimensions] = useState<ScaledSize>(Dimensions.get('window'));
+  const {width, height} = useWindowDimensions();
 
-  useEffect(() => {
-    const subscription = Dimensions.addEventListener('change', ({window}) => {
-      setDimensions(window);
-    });
-
-    return () => subscription?.remove();
-  }, []);
-
-  const breakpoint = getBreakpoint(dimensions.width);
-  const tablet = isTablet(dimensions.width);
-  const phone = isPhone(dimensions.width);
+  const breakpoint = getBreakpoint(width);
+  const tablet = isTablet(width);
+  const phone = isPhone(width);
 
   return {
     breakpoint,
     isTablet: tablet,
     isPhone: phone,
-    width: dimensions.width,
-    height: dimensions.height,
+    width,
+    height,
   };
 };
 

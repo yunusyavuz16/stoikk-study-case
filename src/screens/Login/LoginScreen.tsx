@@ -2,6 +2,7 @@ import React from 'react';
 import {KeyboardAvoidingView, Platform} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
+import {useBreakpoint} from '@hooks/useBreakpoint';
 import {ThemedView} from '@components/ThemedView/ThemedView';
 import {ThemedText} from '@components/ThemedText/ThemedText';
 import {Input} from '@components/Input/Input';
@@ -14,7 +15,8 @@ import {createStyles} from './LoginScreen.styles';
  */
 export const LoginScreen: React.FC = () => {
   const {theme} = useTheme();
-  const styles = createStyles(theme);
+  const {breakpoint} = useBreakpoint();
+  const styles = createStyles(theme, breakpoint);
   const {
     username,
     password,

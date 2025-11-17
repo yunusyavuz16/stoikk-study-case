@@ -101,7 +101,7 @@ const createStyles = (theme: ReturnType<typeof createTheme>) =>
     },
     buttonText: {
       fontSize: theme.typography.fontSize.md,
-      fontWeight: theme.typography.fontWeight.semiBold,
+      fontWeight: theme.typography.fontWeight.semibold,
       color: theme.colors.white,
     },
   });

@@ -25,7 +25,7 @@ export const SearchScreen: React.FC = () => {
   const {breakpoint} = useBreakpoint();
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<TextInput>(null);
-  const styles = useMemo(() => createStyles(theme), [theme]);
+  const styles = useMemo(() => createStyles(theme, breakpoint), [theme, breakpoint]);
 
   // Calculate responsive numColumns based on breakpoint
   const numColumns = useMemo(() => {

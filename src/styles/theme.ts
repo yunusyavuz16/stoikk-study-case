@@ -1,7 +1,9 @@
 /**
  * Theme configuration with colors, spacing, and typography tokens
- * Supports light and dark mode
+ * Supports light and dark mode with responsive scaling
  */
+
+import type {Breakpoint} from '@utils/breakpoints';
 
 export type ThemeMode = 'light' | 'dark';
 
@@ -37,6 +39,10 @@ export const darkColors = {
   transparent: 'transparent',
 } as const;
 
+/**
+ * Base spacing values (for mobile/phone)
+ * Scales up for tablet/desktop breakpoints
+ */
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -46,6 +52,34 @@ export const spacing = {
   xxl: 48,
 } as const;
 
+/**
+ * Responsive spacing scale multipliers by breakpoint
+ * Applied to base spacing values for larger screens
+ */
+export const spacingScale: Record<Breakpoint, number> = {
+  xs: 1.0, // Base scale for extra small
+  sm: 1.0, // Base scale for small (phone)
+  md: 1.25, // 25% larger for tablet
+  lg: 1.5, // 50% larger for large tablet
+  xl: 1.75, // 75% larger for desktop
+} as const;
+
+/**
+ * Get responsive spacing value for a given breakpoint
+ */
+export const getResponsiveSpacing = (
+  baseSpacing: keyof typeof spacing,
+  breakpoint: Breakpoint,
+): number => {
+  const base = spacing[baseSpacing];
+  const scale = spacingScale[breakpoint];
+  return Math.round(base * scale);
+};
+
+/**
+ * Base typography values (for mobile/phone)
+ * Scales up for tablet/desktop breakpoints
+ */
 export const typography = {
   fontSize: {
     xs: 12,
@@ -71,6 +105,42 @@ export const typography = {
   },
 } as const;
 
+/**
+ * Responsive typography scale multipliers by breakpoint
+ * Applied to base font sizes for larger screens
+ */
+export const typographyScale: Record<Breakpoint, number> = {
+  xs: 1.0, // Base scale for extra small
+  sm: 1.0, // Base scale for small (phone)
+  md: 1.125, // 12.5% larger for tablet
+  lg: 1.25, // 25% larger for large tablet
+  xl: 1.375, // 37.5% larger for desktop
+} as const;
+
+/**
+ * Get responsive font size for a given breakpoint
+ */
+export const getResponsiveFontSize = (
+  baseSize: keyof typeof typography.fontSize,
+  breakpoint: Breakpoint,
+): number => {
+  const base = typography.fontSize[baseSize];
+  const scale = typographyScale[breakpoint];
+  return Math.round(base * scale);
+};
+
+/**
+ * Get responsive line height for a given breakpoint
+ */
+export const getResponsiveLineHeight = (
+  baseSize: keyof typeof typography.lineHeight,
+  breakpoint: Breakpoint,
+): number => {
+  const base = typography.lineHeight[baseSize];
+  const scale = typographyScale[breakpoint];
+  return Math.round(base * scale);
+};
+
 export const borderRadius = {
   sm: 4,
   md: 8,
@@ -88,6 +158,8 @@ export const getThemeColors = (mode: ThemeMode) => {
 
 /**
  * Create theme object for a specific mode
+ * Note: Responsive spacing and typography should be accessed via getResponsiveSpacing,
+ * getResponsiveFontSize, and getResponsiveLineHeight functions with breakpoint from useBreakpoint hook
  */
 export const createTheme = (mode: ThemeMode) => {
   return {
@@ -96,6 +168,10 @@ export const createTheme = (mode: ThemeMode) => {
     spacing,
     typography,
     borderRadius,
+    // Helper functions for responsive values
+    getResponsiveSpacing,
+    getResponsiveFontSize,
+    getResponsiveLineHeight,
   } as const;
 };
 
