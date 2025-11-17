@@ -3,7 +3,6 @@
  */
 
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import type {Post} from '../types/post.types';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -11,11 +10,6 @@ export type RootStackParamList = {
   Feed: undefined;
   Search: undefined;
   Profile: undefined;
-  PostDetail: {post: Post};
-};
-
-export type PostDetailRouteParams = {
-  post: Post;
 };
 
 export type NavigationProp<T extends keyof RootStackParamList> =

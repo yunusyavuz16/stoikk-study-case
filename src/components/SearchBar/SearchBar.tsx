@@ -13,7 +13,7 @@ import type {SearchBarProps, SearchBarRef} from './SearchBarProps';
  */
 export const SearchBar = React.memo(
   React.forwardRef<SearchBarRef, SearchBarProps>(
-    ({value, onChangeText, onFocus, placeholder = 'Search...', testID}, ref) => {
+    ({value, onChangeText, onFocus, placeholder = 'Search...', testID, disabled = false}, ref) => {
       const {theme} = useTheme();
       const styles = createStyles(theme);
 
@@ -37,8 +37,8 @@ export const SearchBar = React.memo(
             autoCapitalize="none"
             autoCorrect={false}
             testID={testID}
-            editable={true}
             selectTextOnFocus={false}
+            editable={!disabled}
           />
         </ThemedView>
       );

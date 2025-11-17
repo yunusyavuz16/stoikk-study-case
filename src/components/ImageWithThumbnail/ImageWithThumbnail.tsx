@@ -1,9 +1,9 @@
-import React, {useMemo, useCallback} from 'react';
-import {View, ActivityIndicator, StyleSheet, ViewStyle} from 'react-native';
-import FastImage, {type ResizeMode} from 'react-native-fast-image';
-import {useProgressiveImage} from '@/components/ImageWithThumbnail/hooks/useProgressiveImage';
-import {imageCacheService, CachePriority} from '@services/imageCacheService';
-import {useTheme} from '@hooks/useTheme';
+import React, { useMemo, useCallback } from 'react';
+import { View, ActivityIndicator, StyleSheet, ViewStyle } from 'react-native';
+import FastImage, { type ResizeMode } from 'react-native-fast-image';
+import { useProgressiveImage } from '@/components/ImageWithThumbnail/hooks/useProgressiveImage';
+import { imageCacheService, CachePriority } from '@services/imageCacheService';
+import { useTheme } from '@hooks/useTheme';
 import { getCacheMode } from './utils/imageUtils';
 
 interface ImageWithThumbnailProps {
@@ -32,15 +32,8 @@ interface ImageWithThumbnailProps {
  * 4. Error state - shown if both thumbnail and full image fail
  */
 export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
-  ({
-    uri,
-    thumbnailUri,
-    style,
-    resizeMode = 'cover',
-    onLoad,
-    onError,
-  }) => {
-    const {theme} = useTheme();
+  ({ uri, thumbnailUri, style, resizeMode = 'cover', onLoad, onError }) => {
+    const { theme } = useTheme();
     const {
       imageUri,
       thumbnailUri: thumbUri,
@@ -49,7 +42,15 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
       onLoad: handleFullImageLoad,
       onError: handleFullImageError,
       onThumbnailLoad,
-    } = useProgressiveImage(uri, thumbnailUri);
+    } = useProgressiveImage(
+      'https://images3.alphacoders.com/134/1341103.jpeg',
+      thumbnailUri,
+    );
+
+    console.log('isFullImageLoaded', isFullImageLoaded);
+    console.log('hasError', hasError);
+    console.log('thumbUri', thumbUri);
+    console.log('imageUri', imageUri);
 
     // Memoized callbacks to prevent unnecessary re-renders
     const handleImageLoad = useCallback(() => {
@@ -79,15 +80,6 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
       return imageCacheService.getCacheSource(imageUri, cacheMode, CachePriority.NORMAL);
     }, [imageUri]);
 
-    // Determine if thumbnail should be visible
-    // Show thumbnail if available and full image hasn't loaded yet
-    // Also show thumbnail if full image failed but thumbnail is available (fallback)
-    const shouldShowThumbnail = useMemo(() => {
-      if (thumbUri === null || thumbnailSource === null) return false;
-      // Show thumbnail until full image loads, or if full image failed (as fallback)
-      return !isFullImageLoaded;
-    }, [thumbUri, thumbnailSource, isFullImageLoaded]);
-
     // Show loading indicator only if no thumbnail is available and image is loading
     // Don't show if there's an error (error state will be shown instead)
     const shouldShowLoading = useMemo(() => {
@@ -100,6 +92,9 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
           container: {
             overflow: 'hidden',
             backgroundColor: 'transparent',
+            // Ensure container takes up space immediately
+            minHeight: 1,
+            minWidth: 1,
           },
           imageLayer: {
             ...StyleSheet.absoluteFillObject,
@@ -107,10 +102,13 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
           thumbnailLayer: {
             ...StyleSheet.absoluteFillObject,
             zIndex: 2,
+            // Ensure thumbnail layer covers entire area immediately
+            backgroundColor: 'transparent',
           },
           fullImageLayer: {
             ...StyleSheet.absoluteFillObject,
             zIndex: 1,
+            backgroundColor: 'transparent',
           },
           loadingContainer: {
             ...StyleSheet.absoluteFillObject,
@@ -130,8 +128,6 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
 
     return (
       <View style={[styles.container, style]} pointerEvents="none">
-        {/* Full image layer - always rendered to allow background loading */}
-        {/* Only hide if error occurred AND no thumbnail is available as fallback */}
         {(!hasError || (hasError && thumbUri === null)) && (
           <View style={styles.fullImageLayer} pointerEvents="none">
             <FastImage
@@ -145,8 +141,7 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
           </View>
         )}
 
-        {/* Thumbnail layer - shown on top until full image loads */}
-        {shouldShowThumbnail && thumbnailSource !== null && (
+        {thumbUri !== null && thumbnailSource !== null && !isFullImageLoaded && (
           <View style={styles.thumbnailLayer} pointerEvents="none">
             <FastImage
               source={thumbnailSource}
@@ -175,4 +170,3 @@ export const ImageWithThumbnail = React.memo<ImageWithThumbnailProps>(
 );
 
 ImageWithThumbnail.displayName = 'ImageWithThumbnail';
-

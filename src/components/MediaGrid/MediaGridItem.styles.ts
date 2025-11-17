@@ -9,11 +9,8 @@ export const createStyles = (theme: Theme) =>
     container: {
       flex: 1,
       aspectRatio: 4 / 5, // 4:5 aspect ratio (width:height)
-      backgroundColor: theme.colors.surface,
+      backgroundColor: 'transparent', // Transparent to prevent white placeholder
       overflow: 'hidden',
-    },
-    pressable: {
-      flex: 1,
     },
     image: {
       width: '100%',

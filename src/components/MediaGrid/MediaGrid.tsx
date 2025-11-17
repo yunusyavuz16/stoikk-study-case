@@ -11,18 +11,17 @@ import type {MediaItem} from '../../types/post.types';
 interface MediaGridProps {
   data: MediaItem[];
   numColumns?: number;
-  onItemPress?: (item: MediaItem) => void;
-  pauseVideos?: boolean;
 }
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
 /**
  * Media grid component displaying images and videos in a grid layout
- * Videos auto-play when visible
+ * Videos auto-play when visible based on viewability
+ * Optimized for 120+ items with aggressive performance settings
  */
 export const MediaGrid = React.memo<MediaGridProps>(
-  ({data, numColumns: propNumColumns, onItemPress, pauseVideos = false}) => {
+  ({data, numColumns: propNumColumns}) => {
     const {theme} = useTheme();
     const styles = createStyles(theme);
     const {breakpoint} = useBreakpoint();
@@ -70,22 +69,18 @@ export const MediaGrid = React.memo<MediaGridProps>(
 
     const renderItem = useCallback(
       ({item, index}: {item: MediaItem; index: number}) => {
-        const isVisible = pauseVideos ? false : isItemVisible(index);
-        const handlePress = () => {
-          onItemPress?.(item);
-        };
+        const isVisible = isItemVisible(index);
         return (
           <View style={[styles.gridItem, {width: itemWidth}]}>
             <MediaGridItem
               item={item}
               index={index}
               isVisible={isVisible}
-              onPress={handlePress}
             />
           </View>
         );
       },
-      [isItemVisible, pauseVideos, onItemPress, itemWidth],
+      [isItemVisible, itemWidth, styles.gridItem],
     );
 
     const keyExtractor = useCallback((item: MediaItem) => item.id, []);
@@ -110,10 +105,11 @@ export const MediaGrid = React.memo<MediaGridProps>(
           keyExtractor={keyExtractor}
           numColumns={numColumns}
           style={styles.grid}
-          removeClippedSubviews
-          maxToRenderPerBatch={10}
-          windowSize={5}
+          removeClippedSubviews={true}
+          maxToRenderPerBatch={8}
+          windowSize={3}
           initialNumToRender={6}
+          updateCellsBatchingPeriod={50}
           getItemLayout={getItemLayout}
           onViewableItemsChanged={onViewableItemsChanged}
           viewabilityConfig={viewabilityConfig.current}

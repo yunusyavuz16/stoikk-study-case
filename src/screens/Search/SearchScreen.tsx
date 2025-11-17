@@ -1,8 +1,7 @@
 import React, {useState, useCallback, useEffect, useMemo, useRef} from 'react';
 import {TextInput} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useFocusEffect} from '@react-navigation/native';
 import {useTheme} from '@hooks/useTheme';
 import {ThemedView} from '@components/ThemedView/ThemedView';
 import {SearchBar} from '@components/SearchBar/SearchBar';
@@ -13,21 +12,18 @@ import {useSearchRTK} from '@hooks/useSearchRTK';
 import {useBreakpoint} from '@hooks/useBreakpoint';
 import {useImagePrefetch} from '@hooks/useImagePrefetch';
 import {GridSkeleton} from '@components/Skeleton/Skeleton';
-import type {RootStackParamList} from '../../navigation/types';
-import type {MediaItem} from '../../types/post.types';
 import {createStyles} from './SearchScreen.styles';
 
 /**
  * Search screen displaying media in a grid layout
- * Videos are paused in search grid
+ * Videos auto-play when visible based on viewability
  * Searches posts by caption
- * Tapping a media item navigates to post detail screen
+ * Items are not clickable (no detail screen navigation)
  */
 export const SearchScreen: React.FC = () => {
   const {theme} = useTheme();
   const styles = createStyles(theme);
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
-  const {media, mediaToPostMap, isLoading, error, search, clearSearch, hasInitialContent} = useSearchRTK();
+  const {media, isLoading, error, search, clearSearch, hasInitialContent} = useSearchRTK();
   const {breakpoint} = useBreakpoint();
   const {prefetchImages} = useImagePrefetch();
   const [searchQuery, setSearchQuery] = useState('');
@@ -80,15 +76,6 @@ export const SearchScreen: React.FC = () => {
     }, []),
   );
 
-  const handleItemPress = useCallback(
-    (item: MediaItem) => {
-      const post = mediaToPostMap.get(item.id);
-      if (post) {
-        navigation.navigate('PostDetail', {post});
-      }
-    },
-    [navigation, mediaToPostMap],
-  );
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -119,8 +106,6 @@ export const SearchScreen: React.FC = () => {
         <MediaGrid
           data={media}
           numColumns={numColumns}
-          onItemPress={handleItemPress}
-          pauseVideos={true}
         />
       )}
     </SafeAreaView>

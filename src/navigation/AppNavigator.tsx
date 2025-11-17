@@ -8,7 +8,6 @@ import {LoginScreen} from '@screens/Login/LoginScreen';
 import {FeedScreen} from '@screens/Feed/FeedScreen';
 import {SearchScreen} from '@screens/Search/SearchScreen';
 import {ProfileScreen} from '@screens/Profile/ProfileScreen';
-import {PostDetailScreen} from '@screens/PostDetail/PostDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -44,11 +43,6 @@ export const AppNavigator: React.FC = () => {
           name="Profile"
           component={ProfileScreen}
           options={{title: 'Profile'}}
-        />
-        <Stack.Screen
-          name="PostDetail"
-          component={PostDetailScreen}
-          options={{title: 'Post'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

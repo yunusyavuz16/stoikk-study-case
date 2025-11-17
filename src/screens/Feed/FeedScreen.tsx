@@ -1,29 +1,29 @@
-import React, { useCallback, useRef, useState, useEffect } from 'react';
+import { EmptyState } from '@components/EmptyState/EmptyState';
+import { Icon } from '@components/Icon/Icon';
+import { Post } from '@components/Post/Post';
+import { SearchBar } from '@components/SearchBar/SearchBar';
+import { PostSkeleton } from '@components/Skeleton/Skeleton';
+import { ThemedText } from '@components/ThemedText/ThemedText';
+import { ThemedView } from '@components/ThemedView/ThemedView';
+import { ICONS } from '@constants/icons.constants';
+import { useFeedRTK } from '@hooks/useFeedRTK';
+import { useImagePrefetch } from '@hooks/useImagePrefetch';
+import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
+import { useTheme } from '@hooks/useTheme';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback, useEffect, useRef } from 'react';
 import {
-  FlatList,
   ActivityIndicator,
+  FlatList,
   RefreshControl,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { ThemedView } from '@components/ThemedView/ThemedView';
-import { ThemedText } from '@components/ThemedText/ThemedText';
-import { Post } from '@components/Post/Post';
-import { SearchBar } from '@components/SearchBar/SearchBar';
-import { Icon } from '@components/Icon/Icon';
-import { EmptyState } from '@components/EmptyState/EmptyState';
-import { ICONS } from '@constants/icons.constants';
-import { useFeedRTK } from '@hooks/useFeedRTK';
-import { useImagePrefetch } from '@hooks/useImagePrefetch';
-import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
-import { PostSkeleton } from '@components/Skeleton/Skeleton';
-import { useTheme } from '@hooks/useTheme';
-import { createStyles } from './FeedScreen.styles';
 import type { RootStackParamList } from '../../navigation/types';
 import type { Post as PostType } from '../../types/post.types';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { createStyles } from './FeedScreen.styles';
 
 /**
  * Feed screen displaying posts in a scrollable list with infinite scroll
@@ -37,7 +37,6 @@ export const FeedScreen: React.FC = () => {
     useFeedRTK();
   const { prefetchImages } = useImagePrefetch();
   const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
-  const [searchQuery, setSearchQuery] = useState('');
 
   const viewabilityConfigRef = useRef({
     itemVisiblePercentThreshold: 50,
@@ -157,10 +156,6 @@ export const FeedScreen: React.FC = () => {
           accessibilityRole="button">
           <View pointerEvents="none" style={{flex: 1}}>
             <SearchBar
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              onFocus={handleSearchFocus}
-              placeholder="Search"
             />
           </View>
         </TouchableOpacity>

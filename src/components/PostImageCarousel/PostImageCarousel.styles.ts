@@ -11,7 +11,7 @@ export const createStyles = (theme: Theme) =>
     container: {
       width: '100%',
       aspectRatio: 4 / 5, // 4:5 ratio for all media
-      backgroundColor: theme.colors.black,
+      backgroundColor: 'transparent', // Transparent to prevent black placeholder
     },
     scrollView: {
       flex: 1,
@@ -23,6 +23,7 @@ export const createStyles = (theme: Theme) =>
       width: SCREEN_WIDTH,
       aspectRatio: 4 / 5, // 4:5 ratio for each media item
       overflow: 'hidden', // Hide any controls that might appear outside bounds
+      backgroundColor: 'transparent', // Transparent to prevent black placeholder
     },
     image: {
       width: '100%',
