@@ -1,8 +1,10 @@
-import type {MediaItem} from '../../types/post.types';
+import type { MediaType } from '../../types/post.types';
 
 export interface MediaGridItemProps {
-  item: MediaItem;
-  index: number;
+  id: string;
+  type: MediaType;
+  uri: string | number; // Can be string URL or require() number
+  thumbnail?: string | number; // Can be string URL or require() number
+  duration?: number; // Video duration in seconds
   isVisible: boolean;
 }
-

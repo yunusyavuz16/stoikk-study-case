@@ -1,5 +1,5 @@
 import { useGetPostsQuery, useLazySearchPostsQuery } from '@store/api/postsApi';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MediaItem, Post } from '../types/post.types';
 
 interface UseSearchRTKReturn {
@@ -73,7 +73,7 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
   }, [debouncedQuery, initialPostsData, isLoadingInitial]);
 
   // Extract media from posts and create mapping
-  const {media, mediaToPostMap} = useMemo(() => {
+  const {media, mediaToPostMap} = (() => {
     const mediaItems: MediaItem[] = [];
     const map = new Map<string, Post>();
 
@@ -85,7 +85,7 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
     });
 
     return {media: mediaItems, mediaToPostMap: map};
-  }, [posts]);
+  })();
 
   const search =(query: string) => {
     setSearchQuery(query);

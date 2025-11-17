@@ -20,7 +20,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
  * Videos auto-play when visible based on viewability
  * Optimized for 120+ items with aggressive performance settings
  */
-export const MediaGrid = React.memo<MediaGridProps>(({ data, numColumns: propNumColumns }) => {
+export const MediaGrid: React.FC<MediaGridProps> = ({ data, numColumns: propNumColumns }) => {
   const { theme } = useTheme();
   const styles = createStyles(theme);
   const { breakpoint } = useBreakpoint();
@@ -69,7 +69,14 @@ export const MediaGrid = React.memo<MediaGridProps>(({ data, numColumns: propNum
     const isVisible = isItemVisible(index);
     return (
       <View style={[styles.gridItem, { width: itemWidth }]}>
-        <MediaGridItem item={item} index={index} isVisible={isVisible} />
+        <MediaGridItem
+          id={item.id}
+          type={item.type}
+          uri={item.uri}
+          thumbnail={item.thumbnail}
+          duration={item.duration}
+          isVisible={isVisible}
+        />
       </View>
     );
   };
@@ -104,6 +111,6 @@ export const MediaGrid = React.memo<MediaGridProps>(({ data, numColumns: propNum
       />
     </View>
   );
-});
+};
 
 MediaGrid.displayName = 'MediaGrid';

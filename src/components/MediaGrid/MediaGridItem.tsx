@@ -15,43 +15,40 @@ import type { MediaGridItemProps } from './MediaGridItemProps';
  * Items are not pressable (no navigation to detail screen)
  */
 
-export const MediaGridItem: React.FC<MediaGridItemProps> = ({item, isVisible}) => {
-  const {theme} = useTheme();
-  const styles = createStyles(theme);
+export const MediaGridItem: React.FC<MediaGridItemProps> = React.memo(
+  ({ id, type, uri, thumbnail, duration, isVisible }) => {
+    const { theme } = useTheme();
+    const styles = createStyles(theme);
 
-  // Grid için sadece thumbnail göster: daha düşük çözünürlük, daha az decode maliyeti
-  const thumbnailUri = item.thumbnail ?? item.uri;
+    // Grid için sadece thumbnail göster: daha düşük çözünürlük, daha az decode maliyeti
+    const thumbnailUri = thumbnail ?? uri;
 
-  const thumbnailSource = (() => {
-    const cacheMode = getCacheMode(thumbnailUri);
-    return imageCacheService.getCacheSource(
-      thumbnailUri,
-      cacheMode,
-      CachePriority.HIGH,
+    const thumbnailSource = (() => {
+      const cacheMode = getCacheMode(thumbnailUri);
+      return imageCacheService.getCacheSource(thumbnailUri, cacheMode, CachePriority.HIGH);
+    })();
+
+    return (
+      <View style={styles.container} pointerEvents="none">
+        {type === 'image' ? (
+          <FastImage
+            source={thumbnailSource}
+            style={styles.image}
+            resizeMode={FastImage.resizeMode.cover}
+          />
+        ) : (
+          <PostVideo
+            video={{ id, type, uri, thumbnail, duration }}
+            paused={!isVisible}
+            isVisible={isVisible}
+            showPlayButton={false}
+            showTimer={true}
+            enableTapToPlay={false}
+          />
+        )}
+      </View>
     );
-  })();
-
-  return (
-    <View style={styles.container} pointerEvents="none">
-      {item.type === 'image' ? (
-        <FastImage
-          source={thumbnailSource}
-          style={styles.image}
-          resizeMode={FastImage.resizeMode.cover}
-        />
-      ) : (
-        <PostVideo
-          video={item}
-          paused={!isVisible}
-          isVisible={isVisible}
-          showPlayButton={false}
-          showTimer={true}
-          enableTapToPlay={false}
-        />
-      )}
-    </View>
-  );
-};
+  },
+);
 
 MediaGridItem.displayName = 'MediaGridItem';
-

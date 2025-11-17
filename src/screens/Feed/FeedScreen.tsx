@@ -12,7 +12,7 @@ import { useTheme } from '@hooks/useTheme';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { getResponsiveSpacing } from '@styles/theme';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { ActivityIndicator, FlatList, RefreshControl, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackParamList } from '../../navigation/types';
@@ -35,14 +35,14 @@ export const FeedScreen: React.FC = () => {
   const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
 
   // Tablet optimization: Use 2-3 column layout for tablets
-  const numColumns = useMemo(() => {
+  const numColumns = (() => {
     if (!isTablet) return 1; // Single column for phones
     if (breakpoint === 'xl' || breakpoint === 'lg') return 3; // 3 columns for large tablets
     return 2; // 2 columns for medium tablets
-  }, [isTablet, breakpoint]);
+  })();
 
   // Calculate post width for multi-column layout
-  const postWidth = useMemo(() => {
+  const postWidth = (() => {
     if (numColumns === 1) return undefined; // Let it use full width
     // For multi-column: calculate width with gaps
     // Container already has padding, so we use screenWidth directly
@@ -52,7 +52,7 @@ export const FeedScreen: React.FC = () => {
     const containerPadding = getResponsiveSpacing('md', breakpoint) * 2;
     const availableWidth = screenWidth - containerPadding;
     return (availableWidth - totalGaps) / numColumns;
-  }, [numColumns, screenWidth, breakpoint]);
+  })();
 
   const viewabilityConfigRef = useRef({
     itemVisiblePercentThreshold: 50,

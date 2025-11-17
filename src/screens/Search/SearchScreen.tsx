@@ -8,7 +8,7 @@ import { useBreakpoint } from '@hooks/useBreakpoint';
 import { useSearchRTK } from '@hooks/useSearchRTK';
 import { useTheme } from '@hooks/useTheme';
 import { useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { createStyles } from './SearchScreen.styles';
@@ -25,10 +25,10 @@ export const SearchScreen: React.FC = () => {
   const {breakpoint} = useBreakpoint();
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<TextInput>(null);
-  const styles = useMemo(() => createStyles(theme, breakpoint), [theme, breakpoint]);
+  const styles = createStyles(theme, breakpoint);
 
   // Calculate responsive numColumns based on breakpoint
-  const numColumns = useMemo(() => {
+  const numColumns = (() => {
     if (breakpoint === 'xl' || breakpoint === 'lg') {
       return 5;
     }
@@ -36,7 +36,7 @@ export const SearchScreen: React.FC = () => {
       return 4;
     }
     return 3;
-  }, [breakpoint]);
+  })();
 
   const handleSearchChange = (text: string) => {
       setSearchQuery(text);
