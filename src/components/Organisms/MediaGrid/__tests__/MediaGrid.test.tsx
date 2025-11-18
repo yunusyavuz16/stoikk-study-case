@@ -6,7 +6,7 @@
 import React from 'react';
 import { act, waitFor } from '@testing-library/react-native';
 import { ActivityIndicator, FlatList } from 'react-native';
-import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
+import { GridSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { MediaGrid } from '../MediaGrid';
 import { renderWithProviders, createMockPost } from '../../../../__tests__/utils/testUtils';
 
@@ -115,13 +115,13 @@ describe('MediaGrid', () => {
     await waitFor(() => expect(mockPrefetchImages).toHaveBeenCalled());
   });
 
-  it('renders post skeletons while initial data loads', () => {
+  it('renders grid skeleton while initial data loads', () => {
     mockUseGetPostsReturn.posts = [];
     mockUseGetPostsReturn.isLoading = true;
 
     const { UNSAFE_getAllByType } = renderWithProviders(<MediaGrid searchQuery="" />);
 
-    expect(UNSAFE_getAllByType(PostSkeleton)).toHaveLength(3);
+    expect(UNSAFE_getAllByType(GridSkeleton)).toHaveLength(1);
   });
 
   it('shows an error empty state when data fetching fails', () => {

@@ -1,7 +1,8 @@
 import { ThemedText } from '@/components/Atoms/ThemedText/ThemedText';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
-import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
-import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
+import {
+  POST_LIST_DEFAULT_PREFETCH_COUNT
+} from '@/constants/postListManager.constants';
 import type { Post } from '@/types/post.types';
 import type { Theme } from '@styles/theme';
 import type { ReactElement } from 'react';
@@ -15,7 +16,6 @@ import type {
 import { ActivityIndicator } from 'react-native';
 import { useImagePrefetch } from './useImagePrefetch';
 import { useMediaPlayerVisibility } from './useMediaPlayerVisibility';
-import { POST_LIST_DEFAULT_PREFETCH_COUNT, POST_LIST_DEFAULT_SKELETON_COUNT } from '@/constants/postListManager.constants';
 
 interface PostListManagerStyles {
   endMessage: ViewStyle;
@@ -26,11 +26,8 @@ interface PostListManagerStyles {
 
 interface UsePostListManagerParams {
   posts: Post[];
-  isLoading: boolean;
   isLoadingMore: boolean;
   hasMore: boolean;
-  error: Error | null;
-  refresh: () => void;
   loadMore: () => void;
   theme: Theme;
   styles: PostListManagerStyles;
@@ -42,7 +39,6 @@ interface UsePostListManagerParams {
 interface UsePostListManagerReturn {
   handleEndReached: () => void;
   renderFooter: () => ReactElement | null;
-  renderEmpty: () => ReactElement;
   viewabilityConfigCallbackPairs: ViewabilityConfigCallbackPairs;
   isItemVisible: (index: number) => boolean;
 }
@@ -54,15 +50,11 @@ interface UsePostListManagerReturn {
  */
 export const usePostListManager = ({
   posts,
-  isLoading,
   isLoadingMore,
   hasMore,
-  error,
-  refresh,
   loadMore,
   theme,
   styles,
-  skeletonCount = POST_LIST_DEFAULT_SKELETON_COUNT,
   prefetchStrategy = 'limited',
   prefetchCount = POST_LIST_DEFAULT_PREFETCH_COUNT,
 }: UsePostListManagerParams): UsePostListManagerReturn => {
@@ -98,7 +90,8 @@ export const usePostListManager = ({
     if (mediaItems.length) {
       prefetchImages(mediaItems);
     }
-  }, [posts, prefetchCount, prefetchStrategy, prefetchImages]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [posts, prefetchCount, prefetchStrategy]);
 
   const handleEndReached = () => {
     if (hasMore && !isLoadingMore) {
@@ -126,28 +119,9 @@ export const usePostListManager = ({
     );
   };
 
-  const renderEmpty = () => {
-    if (isLoading) {
-      return (
-        <ThemedView style={styles.emptyContainer}>
-          {Array.from({ length: skeletonCount }, (_, index) => (
-            <PostSkeleton key={`skeleton-${index}`} />
-          ))}
-        </ThemedView>
-      );
-    }
-
-    if (error) {
-      return <EmptyState type="network" message={error.message} onRetry={refresh} />;
-    }
-
-    return <EmptyState type="feed" />;
-  };
-
   return {
     handleEndReached,
     renderFooter,
-    renderEmpty,
     viewabilityConfigCallbackPairs: viewabilityConfigCallbackPairs.current,
     isItemVisible,
   };

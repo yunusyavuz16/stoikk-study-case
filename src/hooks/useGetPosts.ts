@@ -18,7 +18,7 @@ interface UseGetPostsReturn {
  * Hook for managing feed posts with RTK Query
  * Handles pagination and optimistic updates
  */
-export const useGetPosts = (): UseGetPostsReturn => {
+export const useGetPosts = (getLimit: number = 5): UseGetPostsReturn => {
   const [page, setPage] = useState(1);
   const [allPosts, setAllPosts] = useState<Post[]>([]);
 
@@ -28,7 +28,7 @@ export const useGetPosts = (): UseGetPostsReturn => {
     isFetching,
     error: queryError,
     refetch,
-  } = useGetPostsQuery({ page, limit: 10 }, { skip: false });
+  } = useGetPostsQuery({ page, limit: getLimit }, { skip: false });
 
   const [toggleLikeMutation] = useToggleLikeMutation();
 

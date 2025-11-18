@@ -72,11 +72,8 @@ const createPost = (overrides: Partial<Post> = {}): Post => ({
 
 const buildProps = (overrides: Partial<HookParams> = {}): HookParams => ({
   posts: [],
-  isLoading: false,
   isLoadingMore: false,
   hasMore: true,
-  error: null,
-  refresh: jest.fn(),
   loadMore: jest.fn(),
   theme,
   styles,
@@ -216,46 +213,6 @@ describe('usePostListManager', () => {
   it('should return null footer when idle with more posts available', () => {
     const {result} = renderHook(() => usePostListManager(buildProps()));
     expect(result.current.renderFooter()).toBeNull();
-  });
-
-  it('should render skeletons while loading initial data', () => {
-    const skeletonCount = 2;
-    const {result} = renderHook(() =>
-      usePostListManager(
-        buildProps({
-          isLoading: true,
-          skeletonCount,
-        }),
-      ),
-    );
-
-    const emptyState = result.current.renderEmpty() as AnyElement;
-    const skeletonChildren = React.Children.toArray(emptyState.props.children as React.ReactNode);
-    expect(skeletonChildren).toHaveLength(skeletonCount);
-  });
-
-  it('should render network empty state when error occurs', () => {
-    const error = new Error('Network issue');
-    const refresh = jest.fn();
-    const {result} = renderHook(() =>
-      usePostListManager(
-        buildProps({
-          error,
-          refresh,
-        }),
-      ),
-    );
-
-    const emptyState = result.current.renderEmpty() as AnyElement;
-    expect(emptyState.props.type).toBe('network');
-    expect(emptyState.props.message).toBe(error.message);
-    expect(emptyState.props.onRetry).toBe(refresh);
-  });
-
-  it('should render feed empty state when no data and no errors', () => {
-    const {result} = renderHook(() => usePostListManager(buildProps()));
-    const emptyState = result.current.renderEmpty() as AnyElement;
-    expect(emptyState.props.type).toBe('feed');
   });
 
   it('should prefetch limited number of posts by default', async () => {

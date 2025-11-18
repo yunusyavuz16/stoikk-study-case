@@ -68,7 +68,7 @@ export const CustomVideo = forwardRef<VideoRef, CustomVideoProps>(
       <View style={[styles.container, style]}>
         <Video
           ref={videoRef}
-          source={source as any}
+          source={source}
           paused={paused}
           repeat={repeat}
           muted={muted}

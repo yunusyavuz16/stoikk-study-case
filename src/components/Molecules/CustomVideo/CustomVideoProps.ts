@@ -1,8 +1,8 @@
 import type { StyleProp, ViewStyle } from 'react-native';
-import type { OnLoadData, OnProgressData } from 'react-native-video';
+import type { OnLoadData, OnProgressData, ReactVideoSource } from 'react-native-video';
 
 export interface CustomVideoProps {
-  source: { uri: string } | number;
+  source: ReactVideoSource;
   paused?: boolean;
   repeat?: boolean;
   muted?: boolean;

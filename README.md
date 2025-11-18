@@ -60,7 +60,7 @@ Bu dokümantasyon, Instagram klonu case study projesinin teknik mimarisi, karar 
 npm install
 
 # iOS için CocoaPods (sadece ilk kurulumda)
-cd ios && bundle exec pod install && cd ..
+cd ios && pod install && cd ..
 
 # Metro bundler'ı başlat
 npm start
@@ -102,18 +102,18 @@ npm test -- --coverage   # Test coverage raporu
 - Responsive grid layout (3-5 kolon)
 - **Sadece thumbnail gösterimi** (yüksek performans için)
 - Video autoplay (viewport tracking ile)
-- Basit string matching (caption/username)
+- Basit string matching (caption)
 
 ### 4. Video Handling
 - Pexels videos kaynağı
 - Autoplay: Viewport'ta olduğunda otomatik oynatma
 - Auto-pause: Viewport'tan çıktığında otomatik durdurma
 - Error fallback: Video yüklenemezse thumbnail gösterimi
+- Video hazır olana kadar props ile yönetilen thumbnail gösterme özelliği
 
 ### 5. Mock API
 - `postService` ile mock data generation
-- Page-based pagination (10 post per page)
-- String matching ile search
+- Page-based pagination
 - 500ms delay simülasyonu
 
 ### 6. Custom Component Yapısı
@@ -122,7 +122,7 @@ npm test -- --coverage   # Test coverage raporu
 - Ekran kodları sadece component'leri kullanır
 
 ### 7. Büyük Görseller (10MB+) Optimizasyonu
-- **Progressive Loading**: Thumbnail → High-res image
+- **Progressive Loading**: Öncelikle Thumbnail → High-res image
 - **Image Caching**: `react-native-fast-image` (disk + memory)
 - **Prefetching**: Görünür item'ların önceden yüklenmesi
 - CPU/UI thread optimize edilmiş

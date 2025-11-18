@@ -13,7 +13,7 @@ import { useTheme } from '@hooks/useTheme';
 import React, { useRef } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import FastImage from 'react-native-fast-image';
-import type { OnLoadData, OnProgressData } from 'react-native-video';
+import type { OnLoadData, OnProgressData, ReactVideoSource } from 'react-native-video';
 import type { MediaItem } from '../../../types/post.types';
 import { createStyles } from './PostVideo.styles';
 import { useThumbnailOverlay, type ThumbnailSource } from './hooks/useThumbnailOverlay';
@@ -44,14 +44,14 @@ export const PostVideo: React.FC<PostVideoProps> = ({
   thumbnailOverlayDelayMs = DEFAULT_THUMBNAIL_OVERLAY_DELAY_MS,
 }) => {
   const { theme } = useTheme();
-  const styles = createStyles(theme)
+  const styles = createStyles(theme);
   const timerRef = useRef<CustomVideoTimerRef | null>(null);
 
-  const getVideoSource = (uri: string | number) => {
+  const getVideoSource = (uri: string | number): ReactVideoSource => {
     if (typeof uri === 'string') {
       return { uri };
     }
-    return uri as any;
+    return uri as ReactVideoSource;
   };
 
   const getThumbnailSource = (): ThumbnailSource => {

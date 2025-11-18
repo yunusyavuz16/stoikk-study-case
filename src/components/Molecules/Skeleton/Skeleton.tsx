@@ -1,15 +1,15 @@
-import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
+import { useBreakpoint } from '@/hooks/useBreakpoint';
 import { useTheme } from '@hooks/useTheme';
 import type { Theme } from '@styles/theme';
 import React, { useEffect, useRef } from 'react';
-import { Animated, StyleSheet } from 'react-native';
+import { Animated, DimensionValue, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 interface SkeletonProps {
-  width?: number | string;
-  height?: number;
+  width?: DimensionValue;
+  height?: DimensionValue;
   borderRadius?: number;
-  style?: any;
+  style?: StyleProp<ViewStyle>;
 }
 
 /**
@@ -175,15 +175,30 @@ export const GridSkeleton: React.FC<{ numColumns?: number }> = ({ numColumns = 3
   }));
 
   return (
-    <ThemedView style={gridSkeletonStyles.container}>
-      {skeletonItems.map(item => (
-        <ImageSkeleton key={item.id} size={itemSize} />
-      ))}
+    <ThemedView style={gridSkeletonStyles.outerContainer}>
+      <ThemedView style={gridSkeletonStyles.container}>
+        {skeletonItems.map(item => (
+          <ImageSkeleton key={item.id} size={itemSize} />
+        ))}
+      </ThemedView>
+      <ThemedView style={gridSkeletonStyles.container}>
+        {skeletonItems.map(item => (
+          <ImageSkeleton key={item.id} size={itemSize} />
+        ))}
+      </ThemedView>
+      <ThemedView style={gridSkeletonStyles.container}>
+        {skeletonItems.map(item => (
+          <ImageSkeleton key={item.id} size={itemSize} />
+        ))}
+      </ThemedView>
     </ThemedView>
   );
 };
 
 const gridSkeletonStyles = StyleSheet.create({
+  outerContainer: {
+    flex: 1,
+  },
   container: {
     flexDirection: 'row',
     flexWrap: 'wrap',

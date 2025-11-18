@@ -1,6 +1,9 @@
 import { ThemedText } from '@/components/Atoms/ThemedText/ThemedText';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
+import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
+import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { Post } from '@/components/Organisms/Post/Post';
+import { POST_LIST_DEFAULT_SKELETON_COUNT } from '@/constants/postListManager.constants';
 import { useGetPosts } from '@/hooks/useGetPosts';
 import { FeedHeader } from '@/screens/Feed/components/FeedHeader/FeedHeader';
 import { useBreakpoint } from '@hooks/useBreakpoint';
@@ -22,14 +25,11 @@ export const FeedScreen: React.FC = () => {
   const styles = createStyles(theme, breakpoint);
   const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore, toggleLike } =
     useGetPosts();
-  const { handleEndReached, renderEmpty, renderFooter, viewabilityConfigCallbackPairs, isItemVisible } =
+  const { handleEndReached, renderFooter, viewabilityConfigCallbackPairs, isItemVisible } =
     usePostListManager({
       posts,
-      isLoading,
       isLoadingMore,
       hasMore,
-      error,
-      refresh,
       loadMore,
       theme,
       styles,
@@ -39,6 +39,24 @@ export const FeedScreen: React.FC = () => {
     toggleLike(postId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const renderEmpty = () => {
+    if (isLoading) {
+      return (
+        <ThemedView style={styles.emptyContainer}>
+          {Array.from({ length: POST_LIST_DEFAULT_SKELETON_COUNT }, (_, index) => (
+            <PostSkeleton key={`skeleton-${index}`} />
+          ))}
+        </ThemedView>
+      );
+    }
+
+    if (error) {
+      return <EmptyState type="network" message={error.message} onRetry={refresh} />;
+    }
+
+    return <EmptyState type="feed" />;
+  };
 
   const renderPost = ({ item, index }: { item: PostType; index: number }) => {
     const isVisible = isItemVisible(index);

@@ -24,3 +24,12 @@ export interface Post {
   isLiked: boolean;
 }
 
+export interface MediaItemDTO {
+  id: string;
+  type: MediaType;
+  uri: string | number;
+  url: string | number;
+  thumbnail: string | number;
+  thumbUrl: string | number;
+  duration?: number;
+}

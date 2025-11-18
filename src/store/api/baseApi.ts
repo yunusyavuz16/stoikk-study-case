@@ -28,7 +28,7 @@ export const mockBaseQuery: BaseQueryFn<any, unknown, FetchBaseQueryError> = asy
     await new Promise<void>(resolve => setTimeout(() => resolve(), API_CONFIG.MOCK_DELAY));
 
     // Return the body as data (mock services will handle the logic)
-    return {data: body as unknown};
+    return {data: body};
   } catch (error) {
     const appError = createAppError(error);
     return {

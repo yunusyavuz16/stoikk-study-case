@@ -1,3 +1,5 @@
+import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
+import { GridSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { useGetPosts } from '@/hooks/useGetPosts';
 import { useResponsiveColumns } from '@/screens/Search/hooks/useResponsiveColumns';
 import type { MediaItem } from '@/types/post.types';
@@ -6,8 +8,8 @@ import { usePostListManager } from '@hooks/usePostListManager';
 import { useTheme } from '@hooks/useTheme';
 import React, { useMemo } from 'react';
 import { FlatList, RefreshControl, View } from 'react-native';
-import { createStyles } from './MediaGrid.styles';
 import { MediaGridItem } from '../MediaGridItem/MediaGridItem';
+import { createStyles } from './MediaGrid.styles';
 
 /**
  * Scrollable grid that reuses feed data while applying local search filtering.
@@ -18,25 +20,17 @@ export const MediaGrid: React.FC<{ searchQuery: string }> = ({ searchQuery }) =>
   const { breakpoint } = useBreakpoint();
   const styles = createStyles(theme, breakpoint);
 
-  const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore } = useGetPosts();
-  const {
-    handleEndReached,
-    renderEmpty,
-    renderFooter,
-    viewabilityConfigCallbackPairs,
-    isItemVisible,
-  } = usePostListManager({
-    posts,
-    isLoading,
-    isLoadingMore,
-    hasMore,
-    error,
-    refresh,
-    loadMore,
-    theme,
-    styles,
-    prefetchStrategy: 'all',
-  });
+  const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore } = useGetPosts(20);
+  const { handleEndReached, renderFooter, viewabilityConfigCallbackPairs, isItemVisible } =
+    usePostListManager({
+      posts,
+      isLoadingMore,
+      hasMore,
+      loadMore,
+      theme,
+      styles,
+      prefetchStrategy: 'all',
+    });
 
   const numColumns = useResponsiveColumns({ breakpoint });
 
@@ -61,6 +55,18 @@ export const MediaGrid: React.FC<{ searchQuery: string }> = ({ searchQuery }) =>
         />
       </View>
     );
+  };
+
+  const renderEmpty = () => {
+    if (isLoading) {
+      return <GridSkeleton numColumns={numColumns} />;
+    }
+
+    if (error) {
+      return <EmptyState type="network" message={error.message} onRetry={refresh} />;
+    }
+
+    return <EmptyState type="feed" />;
   };
 
   // Extract media from posts and create mapping
