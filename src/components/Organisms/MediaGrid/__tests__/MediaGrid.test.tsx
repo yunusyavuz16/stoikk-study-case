@@ -5,7 +5,8 @@
 
 import React from 'react';
 import { act, waitFor } from '@testing-library/react-native';
-import { FlatList } from 'react-native';
+import { ActivityIndicator, FlatList } from 'react-native';
+import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { MediaGrid } from '../MediaGrid';
 import { renderWithProviders, createMockPost } from '../../../../__tests__/utils/testUtils';
 
@@ -13,6 +14,7 @@ const mockPrefetchImages = jest.fn();
 const mockIsItemVisible = jest.fn(() => true);
 const mockOnViewableItemsChanged = jest.fn();
 const mockUseResponsiveColumns = jest.fn((_params?: { breakpoint: string }) => 3);
+const mockRenderedMediaGridItem = jest.fn();
 
 const mockUseGetPostsReturn = {
   posts: [createMockPost({ caption: 'Beach day' })],
@@ -50,12 +52,15 @@ jest.mock('@hooks/useBreakpoint', () => ({
   }),
 }));
 
-jest.mock('../components/MediaGridItem', () => {
+jest.mock('@/components/Organisms/MediaGridItem/MediaGridItem', () => {
   const ReactModule = require('react');
   const { View } = require('react-native');
 
   return {
-    MediaGridItem: () => ReactModule.createElement(View, { testID: 'media-grid-item' }),
+    MediaGridItem: (props: any) => {
+      mockRenderedMediaGridItem(props);
+      return ReactModule.createElement(View, { testID: `media-grid-item-${props.id}` });
+    },
   };
 });
 
@@ -79,7 +84,7 @@ describe('MediaGrid', () => {
 
     const { getAllByTestId } = renderWithProviders(<MediaGrid searchQuery="beach" />);
 
-    expect(getAllByTestId('media-grid-item')).toHaveLength(2);
+    expect(getAllByTestId(/media-grid-item-/)).toHaveLength(2);
   });
 
   it('renders feed empty state when no post matches search query', () => {
@@ -108,5 +113,64 @@ describe('MediaGrid', () => {
     renderWithProviders(<MediaGrid searchQuery="sunset" />);
 
     await waitFor(() => expect(mockPrefetchImages).toHaveBeenCalled());
+  });
+
+  it('renders post skeletons while initial data loads', () => {
+    mockUseGetPostsReturn.posts = [];
+    mockUseGetPostsReturn.isLoading = true;
+
+    const { UNSAFE_getAllByType } = renderWithProviders(<MediaGrid searchQuery="" />);
+
+    expect(UNSAFE_getAllByType(PostSkeleton)).toHaveLength(3);
+  });
+
+  it('shows an error empty state when data fetching fails', () => {
+    const errorMessage = 'Network unavailable';
+    mockUseGetPostsReturn.posts = [];
+    mockUseGetPostsReturn.error = new Error(errorMessage);
+
+    const { getByText } = renderWithProviders(<MediaGrid searchQuery="" />);
+
+    expect(getByText(errorMessage)).toBeTruthy();
+  });
+
+  it('displays footer message when there are no more posts to fetch', () => {
+    mockUseGetPostsReturn.posts = [createMockPost()];
+    mockUseGetPostsReturn.hasMore = false;
+
+    const { getByText } = renderWithProviders(<MediaGrid searchQuery="" />);
+
+    expect(getByText('No more posts')).toBeTruthy();
+  });
+
+  it('shows loading indicator in footer while fetching more posts', () => {
+    mockUseGetPostsReturn.posts = [createMockPost()];
+    mockUseGetPostsReturn.hasMore = true;
+    mockUseGetPostsReturn.isLoadingMore = true;
+
+    const { UNSAFE_getByType } = renderWithProviders(<MediaGrid searchQuery="" />);
+
+    expect(UNSAFE_getByType(ActivityIndicator)).toBeTruthy();
+  });
+
+  it('calls refresh handler from the RefreshControl', () => {
+    mockUseGetPostsReturn.refresh = jest.fn();
+
+    const { UNSAFE_getByType } = renderWithProviders(<MediaGrid searchQuery="" />);
+
+    act(() => {
+      UNSAFE_getByType(FlatList).props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockUseGetPostsReturn.refresh).toHaveBeenCalled();
+  });
+
+  it('passes item visibility state down to MediaGridItem', () => {
+    mockIsItemVisible.mockReturnValueOnce(false).mockReturnValue(true);
+
+    renderWithProviders(<MediaGrid searchQuery="" />);
+
+    expect(mockRenderedMediaGridItem).toHaveBeenCalled();
+    expect(mockRenderedMediaGridItem.mock.calls[0][0].isVisible).toBe(false);
   });
 });

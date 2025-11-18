@@ -8,7 +8,10 @@ import {API_CONFIG} from '@constants/api.constants';
  * Simulates API calls with delay and error handling
  * Prevents API requests when device is offline
  */
-const mockBaseQuery: BaseQueryFn<any, unknown, FetchBaseQueryError> = async ({body}) => {
+/**
+ * Exposed for unit tests to directly validate network/error flows.
+ */
+export const mockBaseQuery: BaseQueryFn<any, unknown, FetchBaseQueryError> = async ({body}) => {
   try {
     // Check network availability before making request
     const isOnline = networkService.isOnline();

@@ -5,7 +5,7 @@
 
 import React from 'react';
 import {MediaGridItem} from '../MediaGridItem';
-import {renderWithProviders} from '../../../../../__tests__/utils/testUtils';
+import {renderWithProviders} from '../../../../__tests__/utils/testUtils';
 
 describe('MediaGridItem', () => {
   it('should render image item', () => {

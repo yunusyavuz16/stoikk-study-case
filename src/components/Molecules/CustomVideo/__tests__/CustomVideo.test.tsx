@@ -4,11 +4,11 @@
  */
 
 import React from 'react';
-import {CustomVideo} from '../CustomVideo';
-import {renderWithProviders} from '../../../../__tests__/utils/testUtils';
+import { CustomVideo } from '../CustomVideo';
+import { renderWithProviders } from '../../../../__tests__/utils/testUtils';
 
 describe('CustomVideo', () => {
-  const mockSource = {uri: 'https://example.com/video.mp4'};
+  const mockSource = { uri: 'https://example.com/video.mp4' };
   const mockOnLoad = jest.fn();
   const mockOnError = jest.fn();
   const mockOnProgress = jest.fn();
@@ -67,32 +67,8 @@ describe('CustomVideo', () => {
     expect(UNSAFE_root).toBeDefined();
   });
 
-  it('should show play button when paused', () => {
-    const {UNSAFE_root} = renderWithProviders(
-      <CustomVideo source={mockSource} paused={true} showPlayButton={true} />,
-    );
-
-    expect(UNSAFE_root).toBeDefined();
-  });
-
-  it('should handle tap to play when enabled', () => {
-    const {UNSAFE_root} = renderWithProviders(
-      <CustomVideo source={mockSource} paused={true} enableTapToPlay={true} />,
-    );
-
-    expect(UNSAFE_root).toBeDefined();
-  });
-
-  it('should show timer when enabled', () => {
-    const {UNSAFE_root} = renderWithProviders(
-      <CustomVideo source={mockSource} paused={false} showTimer={true} duration={30} />,
-    );
-
-    expect(UNSAFE_root).toBeDefined();
-  });
-
   it('should use aggressive memory mode when enabled', () => {
-    const {UNSAFE_root} = renderWithProviders(
+    const { UNSAFE_root } = renderWithProviders(
       <CustomVideo source={mockSource} paused={false} aggressiveMemoryMode={true} />,
     );
 

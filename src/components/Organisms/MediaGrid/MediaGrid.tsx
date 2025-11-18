@@ -1,19 +1,17 @@
-import { ThemedText } from '@/components/Atoms/ThemedText/ThemedText';
-import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
-import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
-import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { useGetPosts } from '@/hooks/useGetPosts';
 import { useResponsiveColumns } from '@/screens/Search/hooks/useResponsiveColumns';
-import { MediaItem } from '@/types/post.types';
+import type { MediaItem } from '@/types/post.types';
 import { useBreakpoint } from '@hooks/useBreakpoint';
-import { useImagePrefetch } from '@hooks/useImagePrefetch';
-import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
+import { usePostListManager } from '@hooks/usePostListManager';
 import { useTheme } from '@hooks/useTheme';
-import React, { useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
+import React, { useMemo } from 'react';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { createStyles } from './MediaGrid.styles';
-import { MediaGridItem } from './components/MediaGridItem';
+import { MediaGridItem } from '../MediaGridItem/MediaGridItem';
 
+/**
+ * Scrollable grid that reuses feed data while applying local search filtering.
+ */
 export const MediaGrid: React.FC<{ searchQuery: string }> = ({ searchQuery }) => {
   const { width: SCREEN_WIDTH } = useBreakpoint();
   const { theme } = useTheme();
@@ -21,84 +19,26 @@ export const MediaGrid: React.FC<{ searchQuery: string }> = ({ searchQuery }) =>
   const styles = createStyles(theme, breakpoint);
 
   const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore } = useGetPosts();
-  const { prefetchImages } = useImagePrefetch();
-  const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
-
-  const numColumns = useResponsiveColumns({ breakpoint });
-
-  const viewabilityConfigRef = useRef({
-    itemVisiblePercentThreshold: 50,
-    minimumViewTime: 200,
+  const {
+    handleEndReached,
+    renderEmpty,
+    renderFooter,
+    viewabilityConfigCallbackPairs,
+    isItemVisible,
+  } = usePostListManager({
+    posts,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    refresh,
+    loadMore,
+    theme,
+    styles,
+    prefetchStrategy: 'all',
   });
 
-  const viewabilityConfigCallbackPairs = useRef([
-    {
-      viewabilityConfig: viewabilityConfigRef.current,
-      onViewableItemsChanged,
-    },
-  ]);
-
-  const handleEndReached = () => {
-    if (hasMore && !isLoadingMore) {
-      loadMore();
-    }
-  };
-
-  // Prefetch next posts' media when scrolling (with thumbnails)
-  useEffect(() => {
-    if (posts.length > 0) {
-      const mediaItems = posts.flatMap(post =>
-        post.media
-          .filter(m => m.type === 'image')
-          .map(m => ({ uri: m.uri, thumbnailUri: m.thumbnail })),
-      );
-      if (mediaItems.length > 0) {
-        prefetchImages(mediaItems);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [posts]);
-
-  const renderFooter = () => {
-    if (!hasMore && posts.length > 0) {
-      return (
-        <ThemedView style={styles.endMessage}>
-          <ThemedText style={styles.endMessageText}>No more posts</ThemedText>
-        </ThemedView>
-      );
-    }
-
-    if (!isLoadingMore) {
-      return null;
-    }
-
-    return (
-      <ThemedView style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={theme.colors.primary} />
-      </ThemedView>
-    );
-  };
-
-  const renderEmpty = () => {
-    // Show loading skeleton during initial load
-    if (isLoading) {
-      const skeletonItems = Array.from({ length: 3 }, (_, i) => ({
-        id: `skeleton-${i}`,
-      }));
-      return (
-        <ThemedView style={styles.emptyContainer}>
-          {skeletonItems.map(item => (
-            <PostSkeleton key={item.id} />
-          ))}
-        </ThemedView>
-      );
-    }
-    if (error) {
-      return <EmptyState type="network" message={error.message} onRetry={refresh} />;
-    }
-    // Only show "no posts yet" when loading is complete and there are no posts
-    return <EmptyState type="feed" />;
-  };
+  const numColumns = useResponsiveColumns({ breakpoint });
 
   const { itemWidth } = (() => {
     const width = SCREEN_WIDTH / numColumns;
@@ -135,7 +75,7 @@ export const MediaGrid: React.FC<{ searchQuery: string }> = ({ searchQuery }) =>
       }
     }
 
-    return mediaItems
+    return mediaItems;
   }, [posts, searchQuery]);
 
   return (
@@ -155,8 +95,8 @@ export const MediaGrid: React.FC<{ searchQuery: string }> = ({ searchQuery }) =>
         ListFooterComponent={renderFooter}
         ListEmptyComponent={renderEmpty}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
-        // Memory optimization: track visible items to pause off-screen videos
-        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+        // Memory optimization: track visible items to unmount off-screen videos
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
         initialNumToRender={2}
         updateCellsBatchingPeriod={100}
       />

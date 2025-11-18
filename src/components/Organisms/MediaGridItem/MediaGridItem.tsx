@@ -21,6 +21,25 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = React.memo(
       return imageCacheService.getCacheSource(thumbnailUri, cacheMode, CachePriority.HIGH);
     })();
 
+    const videoContent = isVisible ? (
+      <PostVideo
+        video={{ id, type, uri, thumbnail, duration }}
+        paused={!isVisible}
+        isVisible={isVisible}
+        showPlayButton={false}
+        showTimer={true}
+        enableTapToPlay={false}
+        showInitialThumbnailOverlay={true}
+        thumbnailOverlayDelayMs={10}
+      />
+    ) : (
+      <FastImage
+        source={thumbnailSource}
+        style={styles.image}
+        resizeMode={FastImage.resizeMode.cover}
+      />
+    );
+
     return (
       <View style={styles.container} pointerEvents="none">
         {type === 'image' ? (
@@ -30,22 +49,7 @@ export const MediaGridItem: React.FC<MediaGridItemProps> = React.memo(
             resizeMode={FastImage.resizeMode.cover}
           />
         ) : (
-          isVisible ? (
-          <PostVideo
-            video={{ id, type, uri, thumbnail, duration }}
-            paused={!isVisible}
-            isVisible={isVisible}
-            showPlayButton={false}
-            showTimer={true}
-            enableTapToPlay={false}
-          />
-          ) : (
-            <FastImage
-              source={thumbnailSource}
-              style={styles.image}
-              resizeMode={FastImage.resizeMode.cover}
-            />
-          )
+          videoContent
         )}
       </View>
     );

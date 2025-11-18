@@ -1,67 +1,44 @@
 import { ThemedText } from '@/components/Atoms/ThemedText/ThemedText';
 import { ThemedView } from '@/components/Atoms/ThemedView/ThemedView';
-import { EmptyState } from '@/components/Molecules/EmptyState/EmptyState';
-import { PostSkeleton } from '@/components/Molecules/Skeleton/Skeleton';
 import { Post } from '@/components/Organisms/Post/Post';
 import { useGetPosts } from '@/hooks/useGetPosts';
 import { FeedHeader } from '@/screens/Feed/components/FeedHeader/FeedHeader';
 import { useBreakpoint } from '@hooks/useBreakpoint';
-import { useImagePrefetch } from '@hooks/useImagePrefetch';
-import { useMediaPlayerVisibility } from '@hooks/useMediaPlayerVisibility';
+import { usePostListManager } from '@hooks/usePostListManager';
 import { useTheme } from '@hooks/useTheme';
-import React, { useCallback, useEffect, useRef } from 'react';
-import { ActivityIndicator, FlatList, RefreshControl, View } from 'react-native';
+import React, { useCallback } from 'react';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { Post as PostType } from '../../types/post.types';
 import { createStyles } from './FeedScreen.styles';
 
+/**
+ * Feed screen that renders the main timeline with infinite scrolling.
+ * Leverages shared list helpers to keep behavior consistent with MediaGrid.
+ */
 export const FeedScreen: React.FC = () => {
   const { theme } = useTheme();
   const { breakpoint } = useBreakpoint();
   const styles = createStyles(theme, breakpoint);
   const { posts, isLoading, isLoadingMore, error, hasMore, refresh, loadMore, toggleLike } =
     useGetPosts();
-  const { prefetchImages } = useImagePrefetch();
-  const { onViewableItemsChanged, isItemVisible } = useMediaPlayerVisibility(50);
-
-  const viewabilityConfigRef = useRef({
-    itemVisiblePercentThreshold: 50,
-    minimumViewTime: 200,
-  });
-
-  const viewabilityConfigCallbackPairs = useRef([
-    {
-      viewabilityConfig: viewabilityConfigRef.current,
-      onViewableItemsChanged,
-    },
-  ]);
+  const { handleEndReached, renderEmpty, renderFooter, viewabilityConfigCallbackPairs, isItemVisible } =
+    usePostListManager({
+      posts,
+      isLoading,
+      isLoadingMore,
+      hasMore,
+      error,
+      refresh,
+      loadMore,
+      theme,
+      styles,
+    });
 
   const handleLike = useCallback((postId: string) => {
     toggleLike(postId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const handleEndReached = () => {
-    if (hasMore && !isLoadingMore) {
-      loadMore();
-    }
-  };
-
-  // Prefetch next posts' media when scrolling (with thumbnails)
-  useEffect(() => {
-    if (posts.length > 0) {
-      const nextPosts = posts.slice(0, 5); // Prefetch first 5 posts
-      const mediaItems = nextPosts.flatMap(post =>
-        post.media
-          .filter(m => m.type === 'image')
-          .map(m => ({ uri: m.uri, thumbnailUri: m.thumbnail })),
-      );
-      if (mediaItems.length > 0) {
-        prefetchImages(mediaItems);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [posts]);
 
   const renderPost = ({ item, index }: { item: PostType; index: number }) => {
     const isVisible = isItemVisible(index);
@@ -90,47 +67,6 @@ export const FeedScreen: React.FC = () => {
     return item.id;
   };
 
-  const renderFooter = () => {
-    if (!hasMore && posts.length > 0) {
-      return (
-        <ThemedView style={styles.endMessage}>
-          <ThemedText style={styles.endMessageText}>No more posts</ThemedText>
-        </ThemedView>
-      );
-    }
-
-    if (!isLoadingMore) {
-      return null;
-    }
-
-    return (
-      <ThemedView style={styles.footerLoader}>
-        <ActivityIndicator size="small" color={theme.colors.primary} />
-      </ThemedView>
-    );
-  };
-
-  const renderEmpty = () => {
-    // Show loading skeleton during initial load
-    if (isLoading) {
-      const skeletonItems = Array.from({ length: 3 }, (_, i) => ({
-        id: `skeleton-${i}`,
-      }));
-      return (
-        <ThemedView style={styles.emptyContainer}>
-          {skeletonItems.map(item => (
-            <PostSkeleton key={item.id} />
-          ))}
-        </ThemedView>
-      );
-    }
-    if (error) {
-      return <EmptyState type="network" message={error.message} onRetry={refresh} />;
-    }
-    // Only show "no posts yet" when loading is complete and there are no posts
-    return <EmptyState type="feed" />;
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <FeedHeader />
@@ -155,7 +91,7 @@ export const FeedScreen: React.FC = () => {
         ListEmptyComponent={renderEmpty}
         refreshControl={<RefreshControl refreshing={isLoading} onRefresh={refresh} />}
         // Memory optimization: track visible items to pause off-screen videos
-        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs.current}
+        viewabilityConfigCallbackPairs={viewabilityConfigCallbackPairs}
         initialNumToRender={2}
         updateCellsBatchingPeriod={100}
       />

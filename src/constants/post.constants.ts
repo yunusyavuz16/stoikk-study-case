@@ -76,3 +76,5 @@ export const CAPTIONS = [
   'Finding beauty in simplicity',
 ];
 
+export const DEFAULT_THUMBNAIL_OVERLAY_DELAY_MS = 100;
+

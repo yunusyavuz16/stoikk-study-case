@@ -151,32 +151,6 @@ class PostService {
       }, API_CONFIG.MOCK_DELAY);
     });
   }
-
-  /**
-   * Search posts by caption
-   */
-  async searchPosts(query: string): Promise<Post[]> {
-    return new Promise(resolve => {
-      setTimeout(() => {
-        // Generate a larger set of posts for search
-        const allPosts: Post[] = [];
-        for (let page = 1; page <= 10; page++) {
-          const pagePosts = this.generateMockPosts(page, 10);
-          allPosts.push(...pagePosts);
-        }
-
-        // Filter posts by caption (case-insensitive)
-        const lowerQuery = query.toLowerCase().trim();
-        const matchingPosts = allPosts.filter(
-          post =>
-            post.caption.toLowerCase().includes(lowerQuery) ||
-            post.username.toLowerCase().includes(lowerQuery),
-        );
-
-        resolve(matchingPosts);
-      }, API_CONFIG.MOCK_DELAY);
-    });
-  }
 }
 
 export const postService = new PostService();

@@ -1,7 +1,7 @@
-import {baseApi} from './baseApi';
-import {postService} from '@services/postService';
-import {transformPosts} from '@utils/transformers';
-import type {Post} from '../../types/post.types';
+import { postService } from '@services/postService';
+import { transformPosts } from '@utils/transformers';
+import type { Post } from '../../types/post.types';
+import { baseApi } from './baseApi';
 
 interface GetPostsParams {
   page: number;
@@ -13,10 +13,6 @@ interface GetPostsResponse {
   hasMore: boolean;
   total: number;
   currentPage: number;
-}
-
-interface SearchPostsParams {
-  query: string;
 }
 
 interface ToggleLikeParams {
@@ -33,7 +29,7 @@ export const postsApi = baseApi.injectEndpoints({
      * Get posts with pagination
      */
     getPosts: builder.query<GetPostsResponse, GetPostsParams>({
-      queryFn: async ({page, limit = 10}) => {
+      queryFn: async ({ page, limit = 10 }) => {
         try {
           const response = await postService.getPosts(page, limit);
           return {
@@ -59,35 +55,9 @@ export const postsApi = baseApi.injectEndpoints({
     }),
 
     /**
-     * Search posts by query
-     */
-    searchPosts: builder.query<Post[], SearchPostsParams>({
-      queryFn: async ({query}) => {
-        try {
-          const posts = await postService.searchPosts(query);
-          return {
-            data: transformPosts(posts),
-          };
-        } catch (error) {
-          return {
-            error: {
-              status: 'CUSTOM_ERROR',
-              error: error instanceof Error ? error.message : 'Search failed',
-            },
-          };
-        }
-      },
-      providesTags: ['Post'],
-      keepUnusedDataFor: 60, // Keep search results for 1 minute
-    }),
-
-    /**
      * Toggle like on a post (optimistic update)
      */
-    toggleLike: builder.mutation<
-      {post: Post},
-      ToggleLikeParams
-    >({
+    toggleLike: builder.mutation<{ post: Post }, ToggleLikeParams>({
       queryFn: async () => {
         // Optimistic update - in real app, this would call API
         // For now, we'll return success and let the component handle the update
@@ -103,11 +73,4 @@ export const postsApi = baseApi.injectEndpoints({
   }),
 });
 
-export const {
-  useGetPostsQuery,
-  useLazyGetPostsQuery,
-  useSearchPostsQuery,
-  useLazySearchPostsQuery,
-  useToggleLikeMutation,
-} = postsApi;
-
+export const { useGetPostsQuery, useLazyGetPostsQuery, useToggleLikeMutation } = postsApi;

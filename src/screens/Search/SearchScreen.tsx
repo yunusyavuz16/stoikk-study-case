@@ -15,8 +15,8 @@ import { createStyles } from './SearchScreen.styles';
 export const SearchScreen: React.FC = () => {
   const { theme } = useTheme();
 
-  const [searchQueryState, setSearchQuery] = useState('');
-  const deferredQuery = useDeferredValue(searchQueryState);
+  const [searchQuery, setSearchQuery] = useState('');
+  const deferredQuery = useDeferredValue(searchQuery);
 
   const { breakpoint } = useBreakpoint();
   const searchInputRef = useRef<TextInput>(null);
@@ -34,7 +34,7 @@ export const SearchScreen: React.FC = () => {
         }
         searchBarRef={searchInputRef}
         searchBarProps={{
-          value: searchQueryState,
+          value: searchQuery,
           onChangeText: setSearchQuery,
           placeholder: 'Search...',
         }}

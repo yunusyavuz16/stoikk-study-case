@@ -79,28 +79,6 @@ describe('postsApi', () => {
     });
   });
 
-  describe('searchPosts endpoint', () => {
-    it('should search posts and transform them', async () => {
-      const mockPosts = [{id: 'post_1'}];
-      (postService.searchPosts as jest.Mock).mockResolvedValue(mockPosts);
-
-      const store = require('@reduxjs/toolkit').configureStore({
-        reducer: {
-          [require('../baseApi').baseApi.reducerPath]: require('../baseApi').baseApi.reducer,
-        },
-        middleware: (getDefaultMiddleware: any) =>
-          getDefaultMiddleware().concat(require('../baseApi').baseApi.middleware),
-      });
-
-      await store.dispatch(
-        postsApi.endpoints.searchPosts.initiate({query: 'test'}),
-      );
-
-      expect(postService.searchPosts).toHaveBeenCalledWith('test');
-      expect(transformPosts).toHaveBeenCalled();
-    });
-  });
-
   describe('toggleLike endpoint', () => {
     it('should return success', async () => {
       const store = require('@reduxjs/toolkit').configureStore({

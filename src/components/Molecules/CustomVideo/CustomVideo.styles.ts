@@ -12,32 +12,4 @@ export const createStyles = (theme: Theme) =>
     fallback: {
       backgroundColor: theme.colors.black,
     },
-    playButtonContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      zIndex: 20,
-    },
-    playButton: {
-      width: 80, // Fixed size for play button
-      height: 80, // Fixed size for play button
-      borderRadius: 40, // Half of width/height for perfect circle
-      backgroundColor: 'rgba(0, 0, 0, 0.6)', // theme.colors.black with 60% opacity
-      justifyContent: 'center',
-      alignItems: 'center',
-      borderWidth: 2,
-      borderColor: 'rgba(255, 255, 255, 0.8)', // theme.colors.white with 80% opacity
-    },
-    playIconContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-      marginLeft: theme.spacing.xs, // Slight offset to visually center the play triangle
-    },
-    tapOverlay: {
-      zIndex: 15,
-    },
   });
