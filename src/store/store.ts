@@ -15,10 +15,8 @@ export const store = configureStore({
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore these action types for serializable check
-        ignoredActions: ['persist/PERSIST', 'persist/REHYDRATE'],
-      },
+      // we can enable later , we do not use serializable values in redux for now.
+      serializableCheck: false,
     }).concat(baseApi.middleware),
   devTools: __DEV__,
 });

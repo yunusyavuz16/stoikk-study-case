@@ -1,3 +1,42 @@
 module.exports = {
   preset: 'react-native',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@components/(.*)$': '<rootDir>/src/components/$1',
+    '^@screens/(.*)$': '<rootDir>/src/screens/$1',
+    '^@services/(.*)$': '<rootDir>/src/services/$1',
+    '^@hooks/(.*)$': '<rootDir>/src/hooks/$1',
+    '^@types/(.*)$': '<rootDir>/src/types/$1',
+    '^@styles/(.*)$': '<rootDir>/src/styles/$1',
+    '^@utils/(.*)$': '<rootDir>/src/utils/$1',
+    '^@constants/(.*)$': '<rootDir>/src/constants/$1',
+    '^@navigation/(.*)$': '<rootDir>/src/navigation/$1',
+    '^@store/(.*)$': '<rootDir>/src/store/$1',
+    '^@contexts/(.*)$': '<rootDir>/src/contexts/$1',
+  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(react-native|@react-native|@react-navigation|react-native-reanimated|react-native-gesture-handler|react-native-fast-image|react-native-video|react-native-vector-icons|react-native-orientation-locker|react-native-keychain|@react-native-async-storage|@react-native-community|@reduxjs/toolkit|redux|react-redux|immer)/)',
+  ],
+  collectCoverageFrom: [
+    'src/**/*.{ts,tsx}',
+    '!src/**/*.d.ts',
+    '!src/**/*.stories.{ts,tsx}',
+    '!src/**/__tests__/**',
+    '!src/**/__mocks__/**',
+    '!src/**/types.ts',
+    '!src/**/*.types.ts',
+    '!src/**/*.styles.ts',
+    '!src/**/index.ts',
+  ],
+  coverageThreshold: {
+    global: {
+      branches: 80,
+      functions: 80,
+      lines: 80,
+      statements: 80,
+    },
+  },
+  testMatch: ['**/__tests__/**/*.test.{ts,tsx}', '**/*.test.{ts,tsx}'],
+  moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json'],
 };

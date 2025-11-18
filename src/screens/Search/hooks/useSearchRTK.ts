@@ -1,5 +1,5 @@
 import { useGetPostsQuery, useLazySearchPostsQuery } from '@store/api/postsApi';
-import { useEffect, useState } from 'react';
+import { useEffect, useDeferredValue, useState } from 'react';
 import type { MediaItem, Post } from '../../../types/post.types';
 
 interface UseSearchRTKReturn {
@@ -15,7 +15,7 @@ interface UseSearchRTKReturn {
 
 export const useSearchRTK = (): UseSearchRTKReturn => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const deferredQuery = useDeferredValue(searchQuery);
   const [posts, setPosts] = useState<Post[]>([]);
   const [hasInitialContent, setHasInitialContent] = useState(false);
 
@@ -27,37 +27,28 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
     data: initialPostsData,
     isLoading: isLoadingInitial,
     error: initialError,
-  } = useGetPostsQuery({page: 1, limit: 20}, {skip: debouncedQuery.trim().length > 0});
+  } = useGetPostsQuery({page: 1, limit: 20}, {skip: deferredQuery.trim().length > 0});
 
-  // Debounce search query
+  // Trigger search when deferred query changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedQuery(searchQuery);
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
-
-  // Trigger search when debounced query changes
-  useEffect(() => {
-    if (debouncedQuery.trim()) {
-      triggerSearch({query: debouncedQuery.trim()});
+    if (deferredQuery.trim()) {
+      triggerSearch({query: deferredQuery.trim()});
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQuery]);
+  }, [deferredQuery]);
 
   // Update posts when search results change
   useEffect(() => {
-    if (searchResults && debouncedQuery.trim()) {
+    if (searchResults && deferredQuery.trim()) {
       // Only update if we have a search query (search results are for search)
       setPosts(searchResults);
       setHasInitialContent(false);
     }
-  }, [searchResults, debouncedQuery]);
+  }, [searchResults, deferredQuery]);
 
   // Load initial content when no search query
   useEffect(() => {
-    if (!debouncedQuery.trim()) {
+    if (!deferredQuery.trim()) {
       if (initialPostsData?.posts) {
         setPosts(initialPostsData.posts);
         setHasInitialContent(true);
@@ -66,7 +57,7 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
         setHasInitialContent(false);
       }
     }
-  }, [debouncedQuery, initialPostsData, isLoadingInitial]);
+  }, [deferredQuery, initialPostsData, isLoadingInitial]);
 
   // Extract media from posts and create mapping
   const {media, mediaToPostMap} = (() => {
@@ -89,8 +80,6 @@ export const useSearchRTK = (): UseSearchRTKReturn => {
 
   const clearSearch = () => {
     setSearchQuery('');
-    setDebouncedQuery('');
-    // Posts will be set by the initial content effect
     setHasInitialContent(false);
   };
 
